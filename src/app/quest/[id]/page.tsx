@@ -2,7 +2,13 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { getDistanceMeters } from "@/lib/geo";
+
+const MiniMap = dynamic(
+  () => import("@/components/minimap").then((m) => m.MiniMap),
+  { ssr: false }
+);
 
 type QuestData = {
   id: string;
@@ -331,8 +337,11 @@ export default function QuestProgressPage() {
           </div>
         ) : userPos ? (
           <>
+            {/* 和風ミニマップ */}
+            <MiniMap lat={userPos.lat} lng={userPos.lng} />
+
             {/* コンパス風の方角表示 */}
-            <div className="relative flex h-48 w-48 items-center justify-center rounded-full border-4 border-[#D4C5B0] bg-white shadow-inner">
+            <div className="mt-4 relative flex h-48 w-48 items-center justify-center rounded-full border-4 border-[#D4C5B0] bg-white shadow-inner">
               <div
                 className="absolute transition-transform duration-500"
                 style={{ transform: `rotate(${bearing}deg)` }}
