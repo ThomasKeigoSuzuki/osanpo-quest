@@ -1,45 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { calculateGoalPosition } from "@/lib/geo";
 
-const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const TILE_ATTRIBUTION = "&copy; OpenStreetMap";
 const ARROW_COLOR = "#D4A574";
-
-function createUserIcon() {
-  return L.divIcon({
-    html: '<span style="font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">🏮</span>',
-    className: "",
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-}
-
-function createArrowIcon() {
-  return L.divIcon({
-    html: `<svg width="18" height="18" viewBox="0 0 18 18" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3))">
-      <path d="M3 9h10M10 5l4 4-4 4" stroke="${ARROW_COLOR}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
-    className: "",
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-  });
-}
-
-function createPulseIcon() {
-  return L.divIcon({
-    html: `<div style="position:relative;width:60px;height:60px">
-      <div style="position:absolute;inset:0;border-radius:50%;border:3px solid #6B8E7B;animation:pulseRing 1.5s ease-out infinite;opacity:0"></div>
-      <div style="position:absolute;inset:8px;border-radius:50%;border:2px solid #6B8E7B;animation:pulseRing 1.5s ease-out 0.4s infinite;opacity:0"></div>
-    </div>`,
-    className: "",
-    iconSize: [60, 60],
-    iconAnchor: [30, 30],
-  });
-}
+const TRAIL_COLOR = "#6B8E7B";
 
 export function MiniMap({
   lat,
@@ -59,72 +26,103 @@ export function MiniMap({
   routePoints?: { lat: number; lng: number }[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
-  const lineRef = useRef<L.Polyline | null>(null);
-  const arrowRef = useRef<L.Marker | null>(null);
-  const pulseRef = useRef<L.Marker | null>(null);
-  const trailRef = useRef<L.Polyline | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const pulseRef = useRef<HTMLDivElement | null>(null);
+  const arrowMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const initRef = useRef(false);
 
   // 初期化
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current || initRef.current) return;
+    initRef.current = true;
 
-    const map = L.map(containerRef.current, {
-      center: [lat, lng],
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+
+    const map = new mapboxgl.Map({
+      container: containerRef.current,
+      style: "mapbox://styles/mapbox/outdoors-v12",
+      center: [lng, lat],
       zoom: 18,
-      zoomControl: false,
+      interactive: false,
       attributionControl: false,
-      dragging: false,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      boxZoom: false,
-      keyboard: false,
-      touchZoom: false,
     });
 
-    L.tileLayer(TILE_URL, {
-      maxZoom: 19,
-      attribution: TILE_ATTRIBUTION,
-    }).addTo(map);
+    // 提灯マーカー
+    const markerEl = document.createElement("div");
+    markerEl.innerHTML =
+      '<span style="font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">🏮</span>';
+    markerEl.style.lineHeight = "1";
 
-    const marker = L.marker([lat, lng], { icon: createUserIcon() }).addTo(map);
+    const marker = new mapboxgl.Marker({ element: markerEl })
+      .setLngLat([lng, lat])
+      .addTo(map);
 
     mapRef.current = map;
     markerRef.current = marker;
+
+    map.on("load", () => {
+      // 軌跡ソース
+      map.addSource("trail", {
+        type: "geojson",
+        data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } },
+      });
+      map.addLayer({
+        id: "trail-line",
+        type: "line",
+        source: "trail",
+        paint: {
+          "line-color": TRAIL_COLOR,
+          "line-width": 2,
+          "line-opacity": 0.5,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      // 方角矢印ライン ソース
+      map.addSource("arrow-line", {
+        type: "geojson",
+        data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } },
+      });
+      map.addLayer({
+        id: "arrow-line-layer",
+        type: "line",
+        source: "arrow-line",
+        paint: {
+          "line-color": ARROW_COLOR,
+          "line-width": 3,
+          "line-opacity": 0.8,
+          "line-dasharray": [2, 3],
+        },
+        layout: { "line-cap": "round" },
+      });
+    });
 
     return () => {
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
-      lineRef.current = null;
-      arrowRef.current = null;
-      pulseRef.current = null;
-      trailRef.current = null;
+      arrowMarkerRef.current = null;
+      initRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 歩いた軌跡を描画
+  // 軌跡更新
   useEffect(() => {
     const map = mapRef.current;
     if (!map || routePoints.length < 2) return;
-
-    if (trailRef.current) {
-      map.removeLayer(trailRef.current);
+    const src = map.getSource("trail") as mapboxgl.GeoJSONSource | undefined;
+    if (src) {
+      src.setData({
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates: routePoints.map((p) => [p.lng, p.lat]),
+        },
+      });
     }
-
-    trailRef.current = L.polyline(
-      routePoints.map((p) => [p.lat, p.lng] as L.LatLngTuple),
-      {
-        color: "#6B8E7B",
-        weight: 2,
-        opacity: 0.5,
-        lineCap: "round",
-        lineJoin: "round",
-        interactive: false,
-      }
-    ).addTo(map);
   }, [routePoints]);
 
   // 位置・方角・状態更新
@@ -133,59 +131,64 @@ export function MiniMap({
     const marker = markerRef.current;
     if (!map || !marker) return;
 
-    map.setView([lat, lng], 18, { animate: true, duration: 0.5 });
-    marker.setLatLng([lat, lng]);
+    map.easeTo({ center: [lng, lat], zoom: 18, duration: 500 });
+    marker.setLngLat([lng, lat]);
 
-    // 既存の矢印ラインとパルスを削除
-    if (lineRef.current) {
-      map.removeLayer(lineRef.current);
-      lineRef.current = null;
-    }
-    if (arrowRef.current) {
-      map.removeLayer(arrowRef.current);
-      arrowRef.current = null;
-    }
+    // パルスリング管理
     if (pulseRef.current) {
-      map.removeLayer(pulseRef.current);
+      pulseRef.current.remove();
       pulseRef.current = null;
+    }
+    // 矢印マーカー管理
+    if (arrowMarkerRef.current) {
+      arrowMarkerRef.current.remove();
+      arrowMarkerRef.current = null;
     }
 
     if (isInRange) {
-      // ゴール圏内: パルスリング
-      pulseRef.current = L.marker([lat, lng], {
-        icon: createPulseIcon(),
-        interactive: false,
-      }).addTo(map);
-    } else {
-      // ゴール圏外: 方角矢印ライン
-      const arrowEnd = calculateGoalPosition(lat, lng, bearing, 200);
+      // パルスリング
+      const pulseEl = document.createElement("div");
+      pulseEl.innerHTML = `
+        <div style="position:relative;width:60px;height:60px">
+          <div style="position:absolute;inset:0;border-radius:50%;border:3px solid #6B8E7B;animation:pulseRing 1.5s ease-out infinite;opacity:0"></div>
+          <div style="position:absolute;inset:8px;border-radius:50%;border:2px solid #6B8E7B;animation:pulseRing 1.5s ease-out 0.4s infinite;opacity:0"></div>
+        </div>`;
+      new mapboxgl.Marker({ element: pulseEl })
+        .setLngLat([lng, lat])
+        .addTo(map);
+      pulseRef.current = pulseEl;
 
-      lineRef.current = L.polyline(
-        [
-          [lat, lng],
-          [arrowEnd.lat, arrowEnd.lng],
-        ],
-        {
-          color: ARROW_COLOR,
-          weight: 3,
-          opacity: 0.8,
-          dashArray: "8, 12",
-          lineCap: "round",
-          interactive: false,
-        }
-      ).addTo(map);
-
-      arrowRef.current = L.marker([arrowEnd.lat, arrowEnd.lng], {
-        icon: createArrowIcon(),
-        interactive: false,
-      }).addTo(map);
-
-      // 矢印マーカーを方角に回転
-      const el = arrowRef.current.getElement();
-      if (el) {
-        el.style.transformOrigin = "center";
-        el.style.transform += ` rotate(${bearing}deg)`;
+      // 矢印ラインを非表示
+      const src = map.getSource("arrow-line") as mapboxgl.GeoJSONSource | undefined;
+      if (src) {
+        src.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } });
       }
+    } else {
+      // 方角矢印ライン
+      const arrowEnd = calculateGoalPosition(lat, lng, bearing, 200);
+      const src = map.getSource("arrow-line") as mapboxgl.GeoJSONSource | undefined;
+      if (src) {
+        src.setData({
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [lng, lat],
+              [arrowEnd.lng, arrowEnd.lat],
+            ],
+          },
+        });
+      }
+
+      // 矢印マーカー
+      const arrowEl = document.createElement("div");
+      arrowEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));transform:rotate(${bearing}deg)">
+        <path d="M3 9h10M10 5l4 4-4 4" stroke="${ARROW_COLOR}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      arrowMarkerRef.current = new mapboxgl.Marker({ element: arrowEl })
+        .setLngLat([arrowEnd.lng, arrowEnd.lat])
+        .addTo(map);
     }
   }, [lat, lng, bearing, isInRange]);
 
@@ -197,24 +200,21 @@ export function MiniMap({
   return (
     <div className="w-full px-4">
       <div className="relative overflow-hidden rounded-2xl border-2 border-[#C4B59E] bg-[#F5EDE0] shadow-[0_4px_16px_rgba(139,126,106,0.25),inset_0_1px_0_rgba(255,255,255,0.5)]">
-        {/* 巻物の上辺装飾 */}
         <div className="h-1.5 bg-gradient-to-r from-[#D4C5B0] via-[#E8DFD0] to-[#D4C5B0]" />
         <div
           ref={containerRef}
           className="h-[300px] w-full"
           style={{
             background: "#F5EDE0",
-            filter: "sepia(0.4) saturate(0.7) brightness(1.05)",
-            opacity: 0.85,
+            filter: "sepia(0.3) saturate(0.8) brightness(1.05)",
           }}
         />
-        {/* 巻物の下辺装飾 */}
         <div className="h-1.5 bg-gradient-to-r from-[#D4C5B0] via-[#E8DFD0] to-[#D4C5B0]" />
 
         {/* 距離オーバーレイバッジ */}
         <div className="pointer-events-none absolute bottom-4 left-0 right-0 flex justify-center">
           <div
-            className={`rounded-full px-4 py-1.5 backdrop-blur-sm shadow-sm ${
+            className={`rounded-full px-4 py-1.5 shadow-sm backdrop-blur-sm ${
               isInRange
                 ? "bg-[#6B8E7B]/90 text-white"
                 : "bg-[#FFF8F0]/90 text-[#5A5A5A]"
