@@ -66,7 +66,8 @@ export function buildLocalGodGenerationPrompt(
   "personality": "性格を1-2文で",
   "speech_style": "口調の特徴を1文で（例：べらんめえ口調、穏やかな古語調）",
   "first_person": "一人称（例：わし、あたい、私）",
-  "sample_greeting": "初対面の挨拶台詞を1文"
+  "sample_greeting": "初対面の挨拶台詞を1文",
+  "appearance": "外見の特徴を英語で1文（例: An elderly male deity with a long white beard, wearing a blue and white wave-patterned kimono）"
 }
 
 JSONのみを出力してください。説明文は不要です。`;

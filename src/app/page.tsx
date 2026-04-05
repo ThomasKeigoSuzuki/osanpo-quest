@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { ShinakoAvatar } from "@/components/shinako-avatar";
 
 type UserProfile = {
   display_name: string;
@@ -59,7 +58,13 @@ export default async function HomePage() {
 
       {/* シナコのアバター */}
       <div className="mt-12">
-        <ShinakoAvatar />
+        <img
+          src="/shinako.png"
+          alt="シナコ"
+          width={192}
+          height={192}
+          className="h-48 w-48 rounded-full border-4 border-[#E8DFD0] object-cover shadow-lg"
+        />
       </div>
       <p className="mt-4 text-center text-sm text-[#8B7E6A]">
         {activeQuest

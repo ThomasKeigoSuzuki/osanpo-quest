@@ -14,6 +14,7 @@ type QuestData = {
   id: string;
   god_name: string;
   god_type: string;
+  god_image_url: string | null;
   mission_text: string;
   mission_type: string;
   goal_lat: number;
@@ -293,9 +294,23 @@ export default function QuestProgressPage() {
     <div className="flex min-h-dvh flex-col bg-[#FFF8F0]">
       {/* 上部: 神様名 + ミッションタイプ（コンパクト） */}
       <div className="flex items-center gap-2 bg-white/80 px-4 pb-2 pt-8 shadow-sm backdrop-blur-sm">
-        <span className="text-lg">
-          {quest.god_type === "wanderer" ? "🌬️" : "⛩️"}
-        </span>
+        {(() => {
+          const imgSrc =
+            quest.god_type === "wanderer"
+              ? "/shinako.png"
+              : quest.god_image_url;
+          return imgSrc ? (
+            <img
+              src={imgSrc}
+              alt={quest.god_name}
+              className="h-8 w-8 rounded-full border border-[#E8DFD0] object-cover"
+            />
+          ) : (
+            <span className="text-lg">
+              {quest.god_type === "wanderer" ? "🌬️" : "⛩️"}
+            </span>
+          );
+        })()}
         <span className="font-wafuu text-sm font-bold text-[#6B8E7B]">
           {quest.god_name}
         </span>

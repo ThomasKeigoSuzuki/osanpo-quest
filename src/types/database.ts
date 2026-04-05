@@ -34,6 +34,7 @@ export type Database = {
           speech_style: string;
           first_person: string;
           sample_greeting: string;
+          image_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -45,6 +46,7 @@ export type Database = {
           speech_style: string;
           first_person: string;
           sample_greeting: string;
+          image_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -55,6 +57,7 @@ export type Database = {
           speech_style?: string;
           first_person?: string;
           sample_greeting?: string;
+          image_url?: string | null;
         };
         Relationships: [];
       };

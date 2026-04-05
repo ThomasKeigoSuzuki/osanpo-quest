@@ -9,6 +9,7 @@ import {
   buildLocalGodGenerationPrompt,
   buildLocalGodQuestSystemPrompt,
 } from "@/lib/prompts";
+import { generateGodImage } from "@/lib/image-generation";
 
 type QuestGeneration = {
   mission_text: string;
@@ -25,6 +26,7 @@ type LocalGodGeneration = {
   speech_style: string;
   first_person: string;
   sample_greeting: string;
+  appearance?: string;
 };
 
 export async function POST(request: Request) {
@@ -62,6 +64,7 @@ export async function POST(request: Request) {
   let godType: "wanderer" | "local" = "wanderer";
   let godName = "シナコ";
   let localGodId: string | null = null;
+  let godImageUrl: string | null = null;
 
   if (useLocal) {
     // ご当地神を取得または生成
@@ -76,6 +79,7 @@ export async function POST(request: Request) {
       godType = "local";
       godName = existingGod.god_name;
       localGodId = existingGod.id;
+      godImageUrl = existingGod.image_url;
     } else {
       // Claude APIでご当地神を生成
       const godPrompt = buildLocalGodGenerationPrompt(
@@ -110,11 +114,27 @@ export async function POST(request: Request) {
           godType = "local";
           godName = fallback.god_name;
           localGodId = fallback.id;
+          godImageUrl = fallback.image_url;
         }
       } else {
         godType = "local";
         godName = newGod.god_name;
         localGodId = newGod.id;
+
+        // ご当地神のイラストを非同期で生成（レスポンスをブロックしない）
+        if (godData.appearance) {
+          generateGodImage(godData.appearance, newGod.id)
+            .then((url) => {
+              if (url) {
+                serviceClient
+                  .from("local_gods")
+                  .update({ image_url: url })
+                  .eq("id", newGod.id)
+                  .then(() => {});
+              }
+            })
+            .catch(() => {});
+        }
       }
     }
   }
@@ -187,6 +207,7 @@ export async function POST(request: Request) {
     quest_id: questRow.id,
     god_name: godName,
     god_type: godType,
+    god_image_url: godImageUrl,
     mission_text: quest.mission_text,
     mission_type: quest.mission_type,
     goal_lat: quest.goal_lat,

@@ -70,3 +70,63 @@ export async function generateItemImage(
 
   return publicUrl;
 }
+
+/**
+ * ご当地神のイラストを生成し、Supabase Storageにアップロードする。
+ */
+export async function generateGodImage(
+  appearance: string,
+  godId: string
+): Promise<string | null> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+
+  const prompt = `Anime-style character portrait of a Japanese local deity. ${appearance}. Soft watercolor background. Modern anime gacha game illustration style like Mahjong Soul. Upper body portrait, high quality.`;
+
+  const response = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-image-1",
+      prompt,
+      n: 1,
+      size: "1024x1024",
+      quality: "medium",
+    }),
+  });
+
+  if (!response.ok) {
+    console.error("God image generation failed:", await response.text());
+    return null;
+  }
+
+  const data = await response.json();
+  const b64 = data.data?.[0]?.b64_json;
+  if (!b64) return null;
+
+  const imageBuffer = Buffer.from(b64, "base64");
+
+  const serviceClient = await createServiceClient();
+  const filePath = `gods/${godId}.png`;
+
+  const { error: uploadError } = await serviceClient.storage
+    .from("item-images")
+    .upload(filePath, imageBuffer, {
+      contentType: "image/png",
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error("God image upload failed:", uploadError);
+    return null;
+  }
+
+  const {
+    data: { publicUrl },
+  } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
+
+  return publicUrl;
+}
