@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { ShinakoAvatar } from "@/components/shinako-avatar";
 
 type UserProfile = {
   display_name: string;
@@ -35,6 +36,17 @@ export default async function HomePage() {
     .select("*", { count: "exact", head: true })
     .eq("user_id", user!.id);
 
+  // 訪れたエリア数を取得
+  const { data: areaData } = await supabase
+    .from("quests")
+    .select("start_area_name")
+    .eq("user_id", user!.id)
+    .eq("status", "completed");
+
+  const areaCount = areaData
+    ? new Set(areaData.map((q) => q.start_area_name)).size
+    : 0;
+
   return (
     <div className="flex flex-col items-center px-4 pt-12">
       {/* ヘッダー */}
@@ -45,9 +57,9 @@ export default async function HomePage() {
         おさんぽクエスト
       </h1>
 
-      {/* シナコのプレースホルダー */}
-      <div className="mt-12 flex h-48 w-48 items-center justify-center rounded-full bg-[#E8DFD0]">
-        <span className="text-6xl">🌬️</span>
+      {/* シナコのアバター */}
+      <div className="mt-12">
+        <ShinakoAvatar />
       </div>
       <p className="mt-4 text-center text-sm text-[#8B7E6A]">
         {activeQuest
@@ -85,6 +97,12 @@ export default async function HomePage() {
             {itemCount ?? 0}
           </p>
           <p className="text-xs text-[#B0A898]">コレクション</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-[#6B8E7B]">
+            {areaCount}
+          </p>
+          <p className="text-xs text-[#B0A898]">エリア</p>
         </div>
       </div>
     </div>
