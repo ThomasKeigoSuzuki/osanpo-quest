@@ -29,6 +29,8 @@ type LocalGodGeneration = {
   appearance?: string;
 };
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -121,19 +123,30 @@ export async function POST(request: Request) {
         godName = newGod.god_name;
         localGodId = newGod.id;
 
-        // ご当地神のイラストを非同期で生成（レスポンスをブロックしない）
+        // ご当地神のイラストを生成（レスポンス前に完了させる）
         if (godData.appearance) {
-          generateGodImage(godData.appearance, newGod.id)
-            .then((url) => {
-              if (url) {
-                serviceClient
-                  .from("local_gods")
-                  .update({ image_url: url })
-                  .eq("id", newGod.id)
-                  .then(() => {});
+          try {
+            console.log(`[GodImage] Generating image for ${newGod.god_name} (${newGod.id})...`);
+            const url = await generateGodImage(godData.appearance, newGod.id);
+            if (url) {
+              godImageUrl = url;
+              const { error: updateErr } = await serviceClient
+                .from("local_gods")
+                .update({ image_url: url })
+                .eq("id", newGod.id);
+              if (updateErr) {
+                console.error(`[GodImage] Failed to save URL to DB:`, updateErr);
+              } else {
+                console.log(`[GodImage] Saved: ${url}`);
               }
-            })
-            .catch(() => {});
+            } else {
+              console.warn(`[GodImage] generateGodImage returned null for ${newGod.id}`);
+            }
+          } catch (err) {
+            console.error(`[GodImage] Error generating image for ${newGod.id}:`, err);
+          }
+        } else {
+          console.warn(`[GodImage] No appearance field in Claude response for ${newGod.god_name}`);
         }
       }
     }

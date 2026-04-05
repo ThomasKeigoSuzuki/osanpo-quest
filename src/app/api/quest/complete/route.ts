@@ -16,6 +16,8 @@ type ItemGeneration = {
   image_prompt_hint?: string;
 };
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {

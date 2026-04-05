@@ -79,9 +79,14 @@ export async function generateGodImage(
   godId: string
 ): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.warn("[generateGodImage] OPENAI_API_KEY not set, skipping");
+    return null;
+  }
 
   const prompt = `Anime-style character portrait of a Japanese local deity. ${appearance}. Soft watercolor background. Modern anime gacha game illustration style like Mahjong Soul. Upper body portrait, high quality.`;
+
+  console.log(`[generateGodImage] Calling OpenAI for god ${godId}...`);
 
   const response = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
@@ -99,13 +104,19 @@ export async function generateGodImage(
   });
 
   if (!response.ok) {
-    console.error("God image generation failed:", await response.text());
+    const errorText = await response.text();
+    console.error(`[generateGodImage] OpenAI API error (${response.status}):`, errorText);
     return null;
   }
 
   const data = await response.json();
   const b64 = data.data?.[0]?.b64_json;
-  if (!b64) return null;
+  if (!b64) {
+    console.error("[generateGodImage] No b64_json in response:", JSON.stringify(data).slice(0, 200));
+    return null;
+  }
+
+  console.log(`[generateGodImage] Image generated, uploading to Storage...`);
 
   const imageBuffer = Buffer.from(b64, "base64");
 
@@ -120,7 +131,7 @@ export async function generateGodImage(
     });
 
   if (uploadError) {
-    console.error("God image upload failed:", uploadError);
+    console.error("[generateGodImage] Storage upload failed:", uploadError);
     return null;
   }
 
@@ -128,5 +139,6 @@ export async function generateGodImage(
     data: { publicUrl },
   } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
 
+  console.log(`[generateGodImage] Upload complete: ${publicUrl}`);
   return publicUrl;
 }
