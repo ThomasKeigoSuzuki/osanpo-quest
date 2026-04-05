@@ -394,9 +394,9 @@ export default function QuestProgressPage() {
         <button
           onClick={handleAbandon}
           disabled={abandoning}
-          className="mt-3 w-full py-2 text-center text-sm text-[#B0A898] transition hover:text-[#8B7E6A]"
+          className="mt-2 w-full py-1 text-center text-[10px] text-[#C4B59E] transition hover:text-[#8B7E6A]"
         >
-          {abandoning ? "放棄中..." : "クエストを放棄する"}
+          {abandoning ? "放棄中..." : "放棄する"}
         </button>
       </div>
     </div>

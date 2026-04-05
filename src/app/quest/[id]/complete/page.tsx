@@ -148,8 +148,27 @@ function CompleteContent() {
           コレクションを見る
         </button>
         <button
-          onClick={() => router.push("/")}
+          onClick={async () => {
+            const text = `おさんぽクエストで「${item.name}」を手に入れた！ #おさんぽクエスト`;
+            const url = "https://osanpo-quest.vercel.app";
+            if (navigator.share) {
+              try {
+                await navigator.share({ text, url });
+              } catch {
+                // ユーザーがキャンセル
+              }
+            } else {
+              await navigator.clipboard.writeText(`${text}\n${url}`);
+              alert("クリップボードにコピーしました！");
+            }
+          }}
           className="w-full rounded-xl border border-[#D4C5B0] px-4 py-3 text-center text-sm font-medium text-[#8B7E6A] transition hover:bg-white"
+        >
+          シェアする
+        </button>
+        <button
+          onClick={() => router.push("/")}
+          className="w-full py-2 text-center text-xs text-[#B0A898] transition hover:text-[#8B7E6A]"
         >
           ホームに戻る
         </button>

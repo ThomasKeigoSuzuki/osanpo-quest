@@ -164,8 +164,8 @@ export function CollectionView({ items }: { items: Item[] }) {
                 {selectedItem.description}
               </p>
 
-              <div className="mt-4 flex items-center gap-4 text-xs text-[#B0A898]">
-                <span>
+              <div className="mt-4 space-y-1.5 text-center text-xs text-[#B0A898]">
+                <p>
                   {selectedItem.category === "material"
                     ? "素材"
                     : selectedItem.category === "local"
@@ -173,24 +173,21 @@ export function CollectionView({ items }: { items: Item[] }) {
                       : selectedItem.category === "crafted"
                         ? "合成品"
                         : "秘宝"}
-                </span>
-                <span>·</span>
-                <span>{selectedItem.god_name}より</span>
+                  {" · "}
+                  <span className="font-wafuu">{selectedItem.god_name}</span>より
+                </p>
                 {selectedItem.area_name && (
-                  <>
-                    <span>·</span>
-                    <span>{selectedItem.area_name}</span>
-                  </>
+                  <p>📍 {selectedItem.area_name}</p>
                 )}
+                <p>
+                  🗓{" "}
+                  {new Date(selectedItem.obtained_at).toLocaleDateString("ja-JP", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
               </div>
-
-              <p className="mt-1 text-xs text-[#B0A898]">
-                {new Date(selectedItem.obtained_at).toLocaleDateString("ja-JP", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
             </div>
 
             <button
