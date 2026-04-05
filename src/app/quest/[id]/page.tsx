@@ -337,36 +337,19 @@ export default function QuestProgressPage() {
           </div>
         ) : userPos ? (
           <>
-            {/* 和風ミニマップ */}
-            <MiniMap lat={userPos.lat} lng={userPos.lng} />
-
-            {/* コンパス風の方角表示 */}
-            <div className="mt-4 relative flex h-48 w-48 items-center justify-center rounded-full border-4 border-[#D4C5B0] bg-white shadow-inner">
-              <div
-                className="absolute transition-transform duration-500"
-                style={{ transform: `rotate(${bearing}deg)` }}
-              >
-                <div className="flex flex-col items-center">
-                  <div className="-mt-16 h-16 w-1 rounded-full bg-[#6B8E7B]" />
-                  <div className="-mt-1 h-3 w-3 rotate-45 border-l-2 border-t-2 border-[#6B8E7B]" />
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[#6B8E7B]">
-                  {distance !== null ? formatDistance(distance) : "..."}
-                </p>
-                <p className="text-xs text-[#B0A898]">
-                  {bearingToDirection(bearing)}
-                </p>
-              </div>
-            </div>
+            {/* 和風ミニマップ（方角・距離統合） */}
+            <MiniMap
+              lat={userPos.lat}
+              lng={userPos.lng}
+              bearing={bearing}
+              distance={distance}
+              direction={bearingToDirection(bearing)}
+              isInRange={isInRange}
+            />
 
             {isInRange && (
               <div className="mt-4 animate-[fadeInUp_0.5s_ease-out] text-center">
                 <p className="animate-pulse text-sm font-bold text-[#6B8E7B]">
-                  ゴール圏内に入りました！
-                </p>
-                <p className="mt-1 text-xs text-[#B0A898]">
                   「達成！」ボタンを押してクリアしよう
                 </p>
               </div>
