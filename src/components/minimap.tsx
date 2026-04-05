@@ -48,6 +48,7 @@ export function MiniMap({
   distance,
   direction,
   isInRange,
+  routePoints = [],
 }: {
   lat: number;
   lng: number;
@@ -55,6 +56,7 @@ export function MiniMap({
   distance: number | null;
   direction: string;
   isInRange: boolean;
+  routePoints?: { lat: number; lng: number }[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -62,6 +64,7 @@ export function MiniMap({
   const lineRef = useRef<L.Polyline | null>(null);
   const arrowRef = useRef<L.Marker | null>(null);
   const pulseRef = useRef<L.Marker | null>(null);
+  const trailRef = useRef<L.Polyline | null>(null);
 
   // 初期化
   useEffect(() => {
@@ -97,9 +100,32 @@ export function MiniMap({
       lineRef.current = null;
       arrowRef.current = null;
       pulseRef.current = null;
+      trailRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 歩いた軌跡を描画
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || routePoints.length < 2) return;
+
+    if (trailRef.current) {
+      map.removeLayer(trailRef.current);
+    }
+
+    trailRef.current = L.polyline(
+      routePoints.map((p) => [p.lat, p.lng] as L.LatLngTuple),
+      {
+        color: "#6B8E7B",
+        weight: 2,
+        opacity: 0.5,
+        lineCap: "round",
+        lineJoin: "round",
+        interactive: false,
+      }
+    ).addTo(map);
+  }, [routePoints]);
 
   // 位置・方角・状態更新
   useEffect(() => {

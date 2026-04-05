@@ -104,9 +104,7 @@ function CompleteContent() {
                 className="h-32 w-32 rounded-xl object-cover"
               />
             ) : (
-              <span className="animate-[sparkle_1.5s_ease-in-out_infinite] text-5xl">
-                ✨
-              </span>
+              <div className="h-32 w-32 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-xl bg-gradient-to-r from-[#E8DFD0] via-[#F5EDE0] to-[#E8DFD0] bg-[length:200%_100%]" />
             )}
           </div>
         </div>

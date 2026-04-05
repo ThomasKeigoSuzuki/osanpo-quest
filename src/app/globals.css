@@ -74,3 +74,13 @@ body {
   0%   { transform: scale(0.5); opacity: 0.8; }
   100% { transform: scale(1.8); opacity: 0; }
 }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 和風フォント（神様名・タイトル用） */
+.font-wafuu {
+  font-family: var(--font-zen-maru), serif;
+}

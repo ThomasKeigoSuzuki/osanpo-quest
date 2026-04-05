@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import { Zen_Maru_Gothic } from "next/font/google";
 import { BottomNavigation } from "@/components/navigation";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const zenMaruGothic = Zen_Maru_Gothic({
+  variable: "--font-zen-maru",
+  weight: ["500", "700"],
   subsets: ["latin"],
 });
 
@@ -35,7 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`${geistSans.variable} h-full antialiased`}>
+    <html
+      lang="ja"
+      className={`${geistSans.variable} ${zenMaruGothic.variable} h-full antialiased`}
+    >
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>

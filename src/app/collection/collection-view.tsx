@@ -54,6 +54,11 @@ export function CollectionView({ items }: { items: Item[] }) {
             <br />
             クエストをクリアして最初のアイテムを手に入れよう！
           </p>
+          <p className="mt-4 text-xs italic text-[#B0A898]">
+            「まだ何も持ってないの？ ふふ、最初の冒険に出かけてみなよ！」
+            <br />
+            <span className="font-wafuu not-italic">—シナコ</span>
+          </p>
         </div>
       ) : (
         <>

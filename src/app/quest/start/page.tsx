@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type Step = "permission" | "select" | "loading" | "error";
 
 const MAX_RETRIES = 2;
+
+const LOADING_MESSAGES = [
+  "位置を確認中...",
+  "神様を呼んでいます...",
+  "クエストを組み立て中...",
+  "もう少し...",
+];
 
 export default function QuestStartPage() {
   const [step, setStep] = useState<Step>("permission");
@@ -16,7 +23,22 @@ export default function QuestStartPage() {
   const [retryPreference, setRetryPreference] = useState<
     "wanderer" | "local" | "random" | null
   >(null);
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const router = useRouter();
+
+  // ローディングメッセージの段階的変更
+  useEffect(() => {
+    if (step !== "loading") {
+      setLoadingMsgIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingMsgIndex((i) =>
+        i < LOADING_MESSAGES.length - 1 ? i + 1 : i
+      );
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [step]);
 
   function requestLocation() {
     if (!navigator.geolocation) {
@@ -80,7 +102,6 @@ export default function QuestStartPage() {
         router.push(`/quest/${data.quest_id}`);
       } catch (err) {
         if (retry < MAX_RETRIES) {
-          // 自動リトライ（1秒待機）
           await new Promise((r) => setTimeout(r, 1000));
           return startQuest(preference, retry + 1);
         }
@@ -125,7 +146,7 @@ export default function QuestStartPage() {
 
       {step === "select" && (
         <div className="w-full max-w-xs text-center">
-          <h2 className="text-lg font-bold text-[#6B8E7B]">
+          <h2 className="font-wafuu text-lg font-bold text-[#6B8E7B]">
             どの神様に会いますか？
           </h2>
           <p className="mt-2 text-sm text-[#8B7E6A]">
@@ -137,11 +158,11 @@ export default function QuestStartPage() {
               className="w-full rounded-xl bg-white px-4 py-4 text-left shadow-sm transition hover:shadow-md"
             >
               <span className="text-lg">🌬️</span>
-              <span className="ml-3 font-medium text-[#5A5A5A]">
+              <span className="font-wafuu ml-3 font-medium text-[#5A5A5A]">
                 シナコにおまかせ
               </span>
               <p className="ml-9 mt-1 text-xs text-[#B0A898]">
-                放浪の風神がミッションを出すよ
+                風の神シナコが方角と発見のクエストを出す
               </p>
             </button>
             <button
@@ -149,18 +170,21 @@ export default function QuestStartPage() {
               className="w-full rounded-xl bg-white px-4 py-4 text-left shadow-sm transition hover:shadow-md"
             >
               <span className="text-lg">⛩️</span>
-              <span className="ml-3 font-medium text-[#5A5A5A]">
+              <span className="font-wafuu ml-3 font-medium text-[#5A5A5A]">
                 この土地の神様に会う
               </span>
               <p className="ml-9 mt-1 text-xs text-[#B0A898]">
-                ご当地の神様が現れるかも
+                この土地の神様がご当地ミッションを出す
               </p>
             </button>
             <button
               onClick={() => startQuest("random")}
-              className="w-full rounded-xl bg-[#6B8E7B] px-4 py-4 text-center font-bold text-white shadow-lg transition hover:bg-[#5A7D6A] active:scale-[0.98]"
+              className="w-full rounded-xl bg-[#6B8E7B] px-4 py-4 text-center shadow-lg transition hover:bg-[#5A7D6A] active:scale-[0.98]"
             >
-              おまかせ！
+              <span className="font-bold text-white">おまかせ！</span>
+              <p className="mt-1 text-xs text-white/70">
+                ランダムに神様が選ばれる
+              </p>
             </button>
           </div>
         </div>
@@ -169,11 +193,8 @@ export default function QuestStartPage() {
       {step === "loading" && (
         <div className="text-center">
           <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-[#E8DFD0] border-t-[#6B8E7B]" />
-          <p className="mt-6 text-sm text-[#8B7E6A]">
-            神様を呼んでいます...
-          </p>
-          <p className="mt-1 text-xs text-[#B0A898]">
-            少しお待ちください
+          <p className="mt-6 text-sm text-[#8B7E6A] transition-opacity duration-300">
+            {LOADING_MESSAGES[loadingMsgIndex]}
           </p>
         </div>
       )}

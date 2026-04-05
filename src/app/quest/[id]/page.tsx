@@ -38,11 +38,14 @@ export default function QuestProgressPage() {
   const [error, setError] = useState("");
   const [geoError, setGeoError] = useState("");
   const [fetchError, setFetchError] = useState(false);
+  const [showMissionToast, setShowMissionToast] = useState(false);
+  const [routePoints, setRoutePoints] = useState<{ lat: number; lng: number }[]>([]);
 
   const routeBuffer = useRef<{ lat: number; lng: number; timestamp: string }[]>(
     []
   );
   const watchId = useRef<number | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // クエストデータ取得 (リトライ付き)
   useEffect(() => {
@@ -91,6 +94,7 @@ export default function QuestProgressPage() {
           lng: pos.coords.longitude,
         };
         setUserPos(newPos);
+        setRoutePoints((prev) => [...prev, newPos]);
 
         const dist = getDistanceMeters(
           newPos.lat,
@@ -141,7 +145,6 @@ export default function QuestProgressPage() {
           body: JSON.stringify({ quest_id: id, positions }),
         });
       } catch {
-        // ルートログ送信失敗はバッファに戻す
         routeBuffer.current = [...positions, ...routeBuffer.current];
       }
     }, 30000);
@@ -162,13 +165,18 @@ export default function QuestProgressPage() {
     return () => clearInterval(checkInterval);
   }, [quest]);
 
+  const handleShowMission = useCallback(() => {
+    setShowMissionToast(true);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setShowMissionToast(false), 3000);
+  }, []);
+
   const handleComplete = useCallback(async () => {
     if (!userPos || !isInRange || completing) return;
     setCompleting(true);
     setError("");
 
     try {
-      // 残りのルートログを送信
       if (routeBuffer.current.length > 0) {
         await fetch("/api/quest/update-route", {
           method: "POST",
@@ -177,7 +185,7 @@ export default function QuestProgressPage() {
             quest_id: id,
             positions: routeBuffer.current,
           }),
-        }).catch(() => {}); // ルートログ失敗はクリアをブロックしない
+        }).catch(() => {});
         routeBuffer.current = [];
       }
 
@@ -227,12 +235,8 @@ export default function QuestProgressPage() {
     router.push("/");
   }, [abandoning, id, router]);
 
-  // 方角を計算
   function getBearing(
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number
+    lat1: number, lng1: number, lat2: number, lng2: number
   ): number {
     const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const la1 = (lat1 * Math.PI) / 180;
@@ -249,12 +253,6 @@ export default function QuestProgressPage() {
     return dirs[Math.round(bearing / 45) % 8];
   }
 
-  function formatDistance(meters: number): string {
-    if (meters >= 1000) return `${(meters / 1000).toFixed(1)}km`;
-    return `${meters}m`;
-  }
-
-  // エラー画面（初期読み込み失敗）
   if (fetchError) {
     return (
       <div className="flex min-h-dvh items-center justify-center px-4">
@@ -278,7 +276,6 @@ export default function QuestProgressPage() {
     );
   }
 
-  // ローディング
   if (!quest) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
@@ -294,31 +291,41 @@ export default function QuestProgressPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-[#FFF8F0]">
-      {/* 上部: 神様の台詞 */}
-      <div className="bg-white/80 px-4 pb-4 pt-8 shadow-sm backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">
-            {quest.god_type === "wanderer" ? "🌬️" : "⛩️"}
-          </span>
-          <span className="text-sm font-bold text-[#6B8E7B]">
-            {quest.god_name}
-          </span>
-        </div>
-        <p className="mt-2 text-sm leading-relaxed text-[#5A5A5A]">
-          {quest.mission_text}
-        </p>
-        <div className="mt-2 flex items-center gap-2">
-          <span className="rounded-full bg-[#E8DFD0] px-2 py-0.5 text-xs text-[#8B7E6A]">
-            {quest.mission_type === "direction"
-              ? "方角・距離"
-              : quest.mission_type === "discovery"
-                ? "発見"
-                : "体験"}
-          </span>
-        </div>
+      {/* 上部: 神様名 + ミッションタイプ（コンパクト） */}
+      <div className="flex items-center gap-2 bg-white/80 px-4 pb-2 pt-8 shadow-sm backdrop-blur-sm">
+        <span className="text-lg">
+          {quest.god_type === "wanderer" ? "🌬️" : "⛩️"}
+        </span>
+        <span className="font-wafuu text-sm font-bold text-[#6B8E7B]">
+          {quest.god_name}
+        </span>
+        <span className="rounded-full bg-[#E8DFD0] px-2 py-0.5 text-xs text-[#8B7E6A]">
+          {quest.mission_type === "direction"
+            ? "方角・距離"
+            : quest.mission_type === "discovery"
+              ? "発見"
+              : "体験"}
+        </span>
       </div>
 
-      {/* 中央: 方角と距離 */}
+      {/* ミッション再表示フローティングボタン */}
+      <button
+        onClick={handleShowMission}
+        className="fixed left-4 top-20 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition active:scale-90"
+      >
+        <span className="text-lg">📜</span>
+      </button>
+
+      {/* ミッショントースト */}
+      {showMissionToast && (
+        <div className="fixed left-4 right-4 top-32 z-40 animate-[fadeInUp_0.3s_ease-out] rounded-xl bg-white/95 p-4 shadow-lg backdrop-blur-sm">
+          <p className="text-sm leading-relaxed text-[#5A5A5A]">
+            {quest.mission_text}
+          </p>
+        </div>
+      )}
+
+      {/* 中央: ミニマップ */}
       <div className="flex flex-1 flex-col items-center justify-center px-4">
         {geoError ? (
           <div className="w-full max-w-xs text-center">
@@ -327,7 +334,6 @@ export default function QuestProgressPage() {
             <button
               onClick={() => {
                 setGeoError("");
-                // watchPosition を再起動するためにquestを再セット
                 setQuest({ ...quest });
               }}
               className="mt-4 rounded-xl bg-[#6B8E7B] px-6 py-2 text-sm font-medium text-white"
@@ -337,7 +343,6 @@ export default function QuestProgressPage() {
           </div>
         ) : userPos ? (
           <>
-            {/* 和風ミニマップ（方角・距離統合） */}
             <MiniMap
               lat={userPos.lat}
               lng={userPos.lng}
@@ -345,6 +350,7 @@ export default function QuestProgressPage() {
               distance={distance}
               direction={bearingToDirection(bearing)}
               isInRange={isInRange}
+              routePoints={routePoints}
             />
 
             {isInRange && (
