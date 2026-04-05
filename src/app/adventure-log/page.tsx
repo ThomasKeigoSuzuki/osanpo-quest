@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
-import { AdventureLogView } from "./adventure-log-view";
+import { AdventureLogWrapper } from "./adventure-log-wrapper";
 
 type AdventureLog = {
   quest_id: string;
@@ -36,5 +36,5 @@ export default async function AdventureLogPage() {
     .eq("user_id", user!.id)
     .returns<AdventureLog[]>();
 
-  return <AdventureLogView logs={logs || []} />;
+  return <AdventureLogWrapper logs={logs || []} />;
 }
