@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const TILE_URL =
-  "https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg";
+const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const TILE_ATTRIBUTION = "&copy; OpenStreetMap";
 
 function createUserIcon() {
   return L.divIcon({
@@ -46,6 +46,7 @@ export function MiniMap({
 
     L.tileLayer(TILE_URL, {
       maxZoom: 19,
+      attribution: TILE_ATTRIBUTION,
     }).addTo(map);
 
     const marker = L.marker([lat, lng], { icon: createUserIcon() }).addTo(map);
@@ -76,7 +77,11 @@ export function MiniMap({
         <div
           ref={containerRef}
           className="h-[200px] w-full"
-          style={{ background: "#F5EDE0" }}
+          style={{
+            background: "#F5EDE0",
+            filter: "sepia(0.4) saturate(0.7) brightness(1.05)",
+            opacity: 0.85,
+          }}
         />
         {/* 巻物の下辺装飾 */}
         <div className="h-1.5 bg-gradient-to-r from-[#D4C5B0] via-[#E8DFD0] to-[#D4C5B0]" />
