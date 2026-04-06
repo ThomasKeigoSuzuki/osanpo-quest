@@ -123,6 +123,7 @@ export default function QuestProgressPage() {
         if (data.bond_info) url += `&bond=${encodeURIComponent(JSON.stringify(data.bond_info))}`;
         if (data.rank_info) url += `&rank=${encodeURIComponent(JSON.stringify(data.rank_info))}`;
         if (data.shinako_reveal) url += `&reveal=${encodeURIComponent(JSON.stringify(data.shinako_reveal))}`;
+        if (data.tutorial_offering) url += `&tutorial=true`;
         router.push(url);
       }
       else { setError(data.error || "クリア判定に失敗"); setCompleting(false); }

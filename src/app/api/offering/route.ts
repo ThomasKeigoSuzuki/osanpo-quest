@@ -34,7 +34,16 @@ export async function POST(request: Request) {
   const oldStage = bond?.reveal_stage ?? 1;
   const stageChanged = newStage > oldStage;
 
-  await supabase.from("god_bonds").update({ offerings_count: newCount, reveal_stage: newStage }).eq("user_id", user.id).eq("god_name", god_name);
+  if (bond) {
+    await supabase.from("god_bonds").update({ offerings_count: newCount, reveal_stage: newStage }).eq("user_id", user.id).eq("god_name", god_name);
+  }
 
-  return NextResponse.json({ success: true, new_stage: newStage, offerings_count: newCount, stage_changed: stageChanged });
+  // シナコの場合: users.shinako_revealed = true
+  let shinakoUnlocked = false;
+  if (god_name === "シナコ") {
+    await supabase.from("users").update({ shinako_revealed: true }).eq("id", user.id);
+    shinakoUnlocked = true;
+  }
+
+  return NextResponse.json({ success: true, new_stage: newStage, offerings_count: newCount, stage_changed: stageChanged, shinako_unlocked: shinakoUnlocked });
 }

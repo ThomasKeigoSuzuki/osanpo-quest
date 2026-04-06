@@ -169,7 +169,7 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("total_quests_completed, shinako_reveal_stage")
+    .select("total_quests_completed, shinako_reveal_stage, shinako_revealed")
     .eq("id", user.id)
     .single();
 
@@ -299,5 +299,6 @@ export async function POST(request: Request) {
       ranked_up: rankedUp,
     },
     shinako_reveal: shinakoReveal,
+    tutorial_offering: profile && !profile.shinako_revealed,
   });
 }

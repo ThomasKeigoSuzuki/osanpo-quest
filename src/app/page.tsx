@@ -6,7 +6,6 @@ import { getDailyQuestConfig, getCategoryBonusLabel, getTodayDateString } from "
 import { getBondLevel } from "@/lib/bond-system";
 import { getRank } from "@/lib/rank-system";
 import { getShinakoDialogue } from "@/lib/shinako-dialogue";
-import { getNextRevealThreshold } from "@/lib/shinako-reveal";
 import { MisuOverlay } from "@/components/misu-overlay";
 
 const SHINAKO_IMG = "/shinako-full.png";
@@ -26,6 +25,7 @@ export default async function HomePage() {
   let shinakoBond: { level: number; name: string } | null = null;
   let rankInfo = getRank(0);
   let revealStage = 1;
+  let shinakoRevealed = false;
 
   if (user) {
     const { data: p } = await supabase.from("users").select("display_name, total_quests_completed, login_streak").eq("id", user.id).single<UserProfile>();
@@ -41,12 +41,14 @@ export default async function HomePage() {
     dailyCompleted = daily?.completed ?? false;
     const { data: bond } = await supabase.from("god_bonds").select("bond_exp").eq("user_id", user.id).eq("god_name", "シナコ").single();
     if (bond) { const bl = getBondLevel(bond.bond_exp); shinakoBondLevel = bl.level; if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name }; }
-    const { data: rp } = await supabase.from("users").select("rank_points, shinako_reveal_stage").eq("id", user.id).single();
-    if (rp) { rankInfo = getRank(rp.rank_points); revealStage = rp.shinako_reveal_stage ?? 1; }
+    const { data: rp } = await supabase.from("users").select("rank_points, shinako_reveal_stage, shinako_revealed").eq("id", user.id).single();
+    if (rp) { rankInfo = getRank(rp.rank_points); revealStage = rp.shinako_reveal_stage ?? 1; shinakoRevealed = rp.shinako_revealed ?? false; }
   }
 
   const jstDay = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })).getDay();
-  const quote = getShinakoDialogue(shinakoBondLevel, jstDay, profile?.display_name);
+  const quote = shinakoRevealed
+    ? getShinakoDialogue(shinakoBondLevel, jstDay, profile?.display_name)
+    : "…誰？ あたしの姿が見たいなら、まず一人前になりなさい";
   const dailyConfig = getDailyQuestConfig();
   const streak = profile?.login_streak ?? 0;
   const catLabel = getCategoryBonusLabel(dailyConfig.categoryBonus);
@@ -104,7 +106,7 @@ export default async function HomePage() {
         style={{ top: "3%", width: "85%", maxWidth: 380 }}
       >
         <MisuOverlay
-          stage={revealStage}
+          stage={shinakoRevealed ? 5 : 1}
           characterSrc={SHINAKO_IMG}
           characterAlt="シナコ"
           type="shinako"
@@ -115,17 +117,14 @@ export default async function HomePage() {
             </span>
           )}
         </MisuOverlay>
-        {/* 次の解放まで */}
-        {revealStage < 5 && (() => {
-          const next = getNextRevealThreshold(revealStage);
-          const current = profile?.total_quests_completed ?? 0;
-          const remaining = next ? next - current : 0;
-          return remaining > 0 ? (
-            <p className="mt-1 text-center text-[9px]" style={{ color: "var(--color-text-muted)" }}>
-              あと {remaining} クエストで姿が見える…
-            </p>
-          ) : null;
-        })()}
+        {/* ヒントテキスト */}
+        {!shinakoRevealed && (
+          <p className="mt-1 text-center text-[9px]" style={{ color: "var(--color-text-muted)" }}>
+            {(profile?.total_quests_completed ?? 0) === 0
+              ? "クエストをクリアしてシナコに会おう"
+              : "アイテムを奉納して御簾を上げよう"}
+          </p>
+        )}
       </Link>
 
       {/* ===== セリフ (z-30) ===== */}

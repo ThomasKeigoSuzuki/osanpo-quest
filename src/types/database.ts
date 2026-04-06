@@ -15,6 +15,7 @@ export type Database = {
           rank_points: number;
           adventurer_rank: number;
           shinako_reveal_stage: number;
+          shinako_revealed: boolean;
         };
         Insert: {
           id: string;
@@ -28,6 +29,7 @@ export type Database = {
           rank_points?: number;
           adventurer_rank?: number;
           shinako_reveal_stage?: number;
+          shinako_revealed?: boolean;
         };
         Update: {
           id?: string;
@@ -40,6 +42,7 @@ export type Database = {
           rank_points?: number;
           adventurer_rank?: number;
           shinako_reveal_stage?: number;
+          shinako_revealed?: boolean;
         };
         Relationships: [];
       };

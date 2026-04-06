@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
+import { MisuOverlay } from "@/components/misu-overlay";
 
 type Item = {
   id: string;
@@ -40,12 +41,17 @@ function CompleteContent() {
   let rankInfo: { points_gained: number; total_points: number; rank: number; rank_name: string; rank_icon: string; ranked_up: boolean } | null = null;
   if (rankStr) { try { rankInfo = JSON.parse(rankStr); } catch {} }
 
+  const isTutorial = searchParams.get("tutorial") === "true";
+
   const revealStr = searchParams.get("reveal");
   let revealInfo: { new_stage: number; message: string } | null = null;
   if (revealStr) { try { revealInfo = JSON.parse(revealStr); } catch {} }
 
   const [stage, setStage] = useState(0);
   const [showFlash, setShowFlash] = useState(false);
+  const [offeringDone, setOfferingDone] = useState(false);
+  const [offeringLoading, setOfferingLoading] = useState(false);
+  const [misuStage, setMisuStage] = useState(1);
 
   // シェアカードURL生成
   function getShareCardUrl(): string | null {
@@ -255,29 +261,73 @@ function CompleteContent() {
           </div>
         )}
 
-        {/* シェアカードプレビュー + ボタン */}
+        {/* ボタン */}
         <div className={`mt-6 w-full space-y-3 transition-all duration-500 ${stage >= 5 ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}>
-          {/* シェアプレビューカード */}
-          <button
-            onClick={handleShare}
-            className="card-glass flex w-full items-center gap-3 p-3 text-left transition active:scale-[0.98]"
-          >
-            {item.image_url ? (
-              <img src={item.image_url} alt={item.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" style={{ border: "1px solid var(--color-gold)" }} />
-            ) : (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg" style={{ background: "var(--color-card)", border: "1px solid var(--color-gold)" }}>
-                <span className="text-xl">✨</span>
+          {isTutorial && !offeringDone ? (
+            /* チュートリアル: 奉納ボタン */
+            <>
+              {offeringDone ? null : (
+                <button
+                  onClick={async () => {
+                    if (!item || offeringLoading) return;
+                    setOfferingLoading(true);
+                    try {
+                      const res = await fetch("/api/offering", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ item_id: item.id, god_name: "シナコ" }),
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        setOfferingDone(true);
+                        // 御簾解放アニメーション
+                        setShowFlash(true);
+                        setTimeout(() => setMisuStage(5), 300);
+                        setTimeout(() => setShowFlash(false), 1500);
+                      }
+                    } catch {}
+                    setOfferingLoading(false);
+                  }}
+                  disabled={offeringLoading}
+                  className="btn-primary w-full text-center"
+                >
+                  {offeringLoading ? "奉納中..." : "🎁 シナコにアイテムを奉納する"}
+                </button>
+              )}
+            </>
+          ) : offeringDone ? (
+            /* 奉納完了後: 御簾解放演出 + ホームボタン */
+            <div className="text-center">
+              <div className="mx-auto mb-4 h-[200px] w-[200px] overflow-hidden rounded-xl" style={{ border: "1px solid rgba(232,184,73,0.3)" }}>
+                <MisuOverlay stage={misuStage} characterSrc="/shinako-full.png" characterAlt="シナコ" type="shinako" />
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-[var(--color-text)]">{item.name}</p>
-              <p className="text-[10px]" style={{ color: "var(--color-gold)" }}>{"★".repeat(item.rarity)}</p>
-              <p className="text-[10px]" style={{ color: "var(--color-teal)" }}>タップしてシェア →</p>
+              <p className="font-wafuu text-sm font-bold text-gold animate-[starGlow_1.5s_ease-in-out_infinite]">
+                ✨ シナコが姿を現した！
+              </p>
+              <p className="mt-2 text-xs" style={{ color: "var(--color-text-sub)" }}>
+                「これがあたしよ。あんたにだけ見せてあげるんだから。…光栄に思いなさい」
+              </p>
+              <button onClick={() => router.push("/")} className="btn-primary mt-6 w-full text-center">ホームに戻る</button>
             </div>
-          </button>
-
-          <button onClick={() => router.push("/collection")} className="btn-primary w-full text-center">コレクションを見る</button>
-          <button onClick={() => router.push("/")} className="btn-ghost w-full text-center text-sm">ホームに戻る</button>
+          ) : (
+            /* 通常フロー */
+            <>
+              <button onClick={handleShare} className="card-glass flex w-full items-center gap-3 p-3 text-left transition active:scale-[0.98]">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" style={{ border: "1px solid var(--color-gold)" }} />
+                ) : (
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg" style={{ background: "var(--color-card)", border: "1px solid var(--color-gold)" }}><span className="text-xl">✨</span></div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-[var(--color-text)]">{item.name}</p>
+                  <p className="text-[10px]" style={{ color: "var(--color-gold)" }}>{"★".repeat(item.rarity)}</p>
+                  <p className="text-[10px]" style={{ color: "var(--color-teal)" }}>タップしてシェア →</p>
+                </div>
+              </button>
+              <button onClick={() => router.push("/collection")} className="btn-primary w-full text-center">コレクションを見る</button>
+              <button onClick={() => router.push("/")} className="btn-ghost w-full text-center text-sm">ホームに戻る</button>
+            </>
+          )}
         </div>
       </div>
     </div>
