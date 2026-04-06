@@ -1,35 +1,149 @@
 @import "tailwindcss";
 
 :root {
-  --color-cream: #FFF8F0;
-  --color-green: #6B8E7B;
-  --color-green-dark: #5A7D6A;
-  --color-brown: #8B7E6A;
-  --color-brown-light: #B0A898;
-  --color-sand: #D4C5B0;
-  --color-sand-light: #E8DFD0;
-  --color-text: #5A5A5A;
+  /* ===== Fantasy Dark Theme ===== */
+  --color-bg-primary: #1a1a2e;
+  --color-bg-secondary: #16213e;
+  --color-bg-tertiary: #0f3460;
+  --color-gold: #e8b849;
+  --color-gold-light: #f4d03f;
+  --color-gold-dark: #c9982e;
+  --color-teal: #4ecdc4;
+  --color-teal-dark: #3ab5ad;
+  --color-accent: #f4a261;
+  --color-danger: #e76f51;
+  --color-success: #2ec4b6;
+  --color-text: #f0f0f0;
+  --color-text-sub: rgba(255, 255, 255, 0.6);
+  --color-text-muted: rgba(255, 255, 255, 0.35);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-card: rgba(255, 255, 255, 0.08);
+  --color-card-hover: rgba(255, 255, 255, 0.12);
 }
 
 @theme inline {
-  --color-background: var(--color-cream);
+  --color-background: var(--color-bg-primary);
   --color-foreground: var(--color-text);
   --font-sans: var(--font-geist-sans);
 }
 
+/* ===== Body ===== */
 body {
-  background: var(--color-cream);
+  background: linear-gradient(145deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-tertiary) 100%);
+  background-attachment: fixed;
   color: var(--color-text);
   font-family: Arial, Helvetica, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  min-height: 100dvh;
 }
 
-/* PWA safe area */
+/* ===== Utility Classes ===== */
+
+/* Glass morphism card */
+.card-glass {
+  background: var(--color-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+.card-glass:hover {
+  background: var(--color-card-hover);
+}
+
+/* Gold gradient text */
+.text-gold {
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Fantasy gradient background */
+.bg-fantasy {
+  background: linear-gradient(145deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-tertiary) 100%);
+  background-attachment: fixed;
+}
+
+/* Gold glow */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(232, 184, 73, 0.3), 0 0 60px rgba(232, 184, 73, 0.1);
+}
+
+/* Primary button — gold gradient + shimmer */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-gold-dark) 0%, var(--color-gold) 50%, var(--color-gold-light) 100%);
+  color: #1a1a2e;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 14px 32px;
+  box-shadow: 0 2px 12px rgba(232, 184, 73, 0.3);
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
+  transform: translateX(-100%);
+  animation: btnShimmer 3s ease-in-out infinite;
+}
+.btn-primary:hover {
+  box-shadow: 0 4px 20px rgba(232, 184, 73, 0.5);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+.btn-primary:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.btn-primary:disabled::after {
+  display: none;
+}
+
+/* Secondary button */
+.btn-secondary {
+  background: transparent;
+  color: var(--color-teal);
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 14px 32px;
+  border: 1px solid var(--color-teal);
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  background: rgba(78, 205, 196, 0.1);
+}
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* Ghost button */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-sub);
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 12px 24px;
+  transition: all 0.2s;
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+}
+
+/* ===== Safe Area ===== */
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
 }
 
-/* Hide scrollbar for tabs */
+/* ===== Scrollbar ===== */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -38,7 +152,7 @@ body {
   display: none;
 }
 
-/* Animations */
+/* ===== Animations ===== */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -46,6 +160,11 @@ body {
 
 @keyframes flash {
   0%   { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+@keyframes flashGold {
+  0%   { opacity: 0.6; }
   100% { opacity: 0; }
 }
 
@@ -57,6 +176,11 @@ body {
 @keyframes glow {
   0%, 100% { opacity: 0.4; transform: scale(1); }
   50%      { opacity: 0.7; transform: scale(1.1); }
+}
+
+@keyframes glowRing {
+  0%, 100% { box-shadow: 0 0 8px rgba(232, 184, 73, 0.3); }
+  50%      { box-shadow: 0 0 20px rgba(232, 184, 73, 0.6); }
 }
 
 @keyframes sparkle {
@@ -80,12 +204,27 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* 和風フォント（神様名・タイトル用） */
+@keyframes btnShimmer {
+  0%, 100% { transform: translateX(-100%); }
+  50%      { transform: translateX(100%); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes starGlow {
+  0%, 100% { text-shadow: 0 0 4px rgba(232,184,73,0.5); }
+  50%      { text-shadow: 0 0 12px rgba(232,184,73,0.9); }
+}
+
+/* ===== Fonts ===== */
 .font-wafuu {
   font-family: var(--font-zen-maru), serif;
 }
 
-/* モーション軽減設定の尊重 */
+/* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

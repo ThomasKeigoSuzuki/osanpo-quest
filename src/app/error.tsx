@@ -8,18 +8,15 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-[#FFF8F0] px-4">
-      <p className="text-4xl">😥</p>
-      <h2 className="mt-4 text-lg font-bold text-[#6B8E7B]">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-fantasy px-4">
+      <p className="text-5xl">😥</p>
+      <h2 className="text-gold mt-4 text-lg font-bold">
         エラーが発生しました
       </h2>
-      <p className="mt-2 text-center text-sm text-[#8B7E6A]">
+      <p className="mt-2 text-center text-sm text-[var(--color-text-sub)]">
         {error.message || "予期しないエラーです。もう一度お試しください。"}
       </p>
-      <button
-        onClick={reset}
-        className="mt-6 rounded-xl bg-[#6B8E7B] px-6 py-3 font-medium text-white"
-      >
+      <button onClick={reset} className="btn-primary mt-6">
         もう一度試す
       </button>
     </div>

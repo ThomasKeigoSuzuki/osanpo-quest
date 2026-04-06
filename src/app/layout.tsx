@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6B8E7B",
+  themeColor: "#1a1a2e",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -49,7 +49,7 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className="flex min-h-dvh flex-col bg-[#FFF8F0]">
+      <body className="flex min-h-dvh flex-col bg-fantasy">
         <main className="flex-1 pb-16">{children}</main>
         <BottomNavigation />
         <ServiceWorkerRegister />
