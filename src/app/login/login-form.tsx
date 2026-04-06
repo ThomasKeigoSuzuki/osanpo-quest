@@ -44,23 +44,23 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-[#FFF8F0] px-4">
+    <div className="bg-fantasy flex min-h-dvh flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#6B8E7B]">おさんぽクエスト</h1>
-          <p className="mt-2 text-sm text-[#8B7E6A]">
+          <h1 className="font-wafuu text-4xl font-bold text-gold">おさんぽクエスト</h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--color-text-sub)" }}>
             神様のお使いで散歩が冒険に変わる
           </p>
         </div>
 
         {sent ? (
-          <div className="rounded-xl bg-white p-6 text-center shadow-sm">
-            <p className="text-[#5A5A5A]">
-              <span className="text-lg font-medium text-[#6B8E7B]">
+          <div className="card-glass p-6 text-center">
+            <p>
+              <span className="text-lg font-medium text-gold">
                 メールを送信しました
               </span>
               <br />
-              <span className="mt-2 block text-sm">
+              <span className="mt-2 block text-sm" style={{ color: "var(--color-text-sub)" }}>
                 {email} に届いたリンクからログインしてください。
               </span>
             </p>
@@ -69,7 +69,7 @@ export function LoginForm() {
           <div className="space-y-4">
             <button
               onClick={handleGoogleLogin}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-medium text-[#5A5A5A] shadow-sm transition hover:shadow-md"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-medium text-[#333] shadow-sm transition hover:shadow-md"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -93,31 +93,44 @@ export function LoginForm() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-[#D4C5B0]" />
-              <span className="text-xs text-[#8B7E6A]">または</span>
-              <div className="h-px flex-1 bg-[#D4C5B0]" />
+              <div className="h-px flex-1" style={{ background: "var(--color-border)" }} />
+              <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>または</span>
+              <div className="h-px flex-1" style={{ background: "var(--color-border)" }} />
             </div>
 
-            <form onSubmit={handleMagicLink} className="space-y-3">
+            <form onSubmit={handleMagicLink} className="card-glass space-y-3 p-4">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="メールアドレス"
                 required
-                className="w-full rounded-xl border border-[#D4C5B0] bg-white px-4 py-3 text-sm text-[#5A5A5A] placeholder-[#B0A898] outline-none focus:border-[#6B8E7B] focus:ring-1 focus:ring-[#6B8E7B]"
+                className="w-full rounded-xl px-4 py-3 text-sm outline-none transition"
+                style={{
+                  background: "rgba(0,0,0,0.3)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-gold)";
+                  e.currentTarget.style.boxShadow = "0 0 0 2px rgba(232,184,73,0.3)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--color-border)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-[#6B8E7B] px-4 py-3 font-medium text-white transition hover:bg-[#5A7D6A] disabled:opacity-50"
+                className="btn-primary w-full text-sm"
               >
                 {loading ? "送信中..." : "マジックリンクでログイン"}
               </button>
             </form>
 
             {error && (
-              <p className="text-center text-sm text-red-500">{error}</p>
+              <p className="text-center text-sm" style={{ color: "var(--color-danger)" }}>{error}</p>
             )}
           </div>
         )}

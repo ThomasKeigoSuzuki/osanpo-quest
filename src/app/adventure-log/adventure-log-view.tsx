@@ -83,8 +83,8 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
 
   return (
     <div className="px-4 pt-8 pb-4">
-      <h1 className="font-wafuu text-xl font-bold text-[#6B8E7B]">冒険日記</h1>
-      <div className="mt-1 flex items-center gap-3 text-sm text-[#B0A898]">
+      <h1 className="font-wafuu text-xl font-bold text-gold">冒険日記</h1>
+      <div className="mt-1 flex items-center gap-3 text-sm" style={{ color: "var(--color-text-sub)" }}>
         <span>{logs.length}件の冒険</span>
         {totalDistance > 0 && (
           <>
@@ -95,7 +95,7 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
       </div>
 
       {logs.length === 0 ? (
-        <div className="mt-20 text-center text-[#B0A898]">
+        <div className="mt-20 text-center" style={{ color: "var(--color-text-sub)" }}>
           <p className="text-4xl">📖</p>
           <p className="mt-3 text-sm">
             まだ冒険の記録がありません。<br />最初のクエストに出かけよう！
@@ -106,9 +106,13 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
           {grouped.map(({ date, entries, totalDist }) => (
             <div key={date}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-xs font-medium text-[#B0A898]">{date}</h2>
+                <div className="flex items-center gap-2">
+                  <div className="h-px w-4" style={{ background: "var(--color-gold)" }} />
+                  <h2 className="text-xs font-medium text-gold">{date}</h2>
+                  <div className="h-px flex-1" style={{ background: "var(--color-gold)", opacity: 0.3 }} />
+                </div>
                 {totalDist > 0 && (
-                  <span className="text-xs text-[#B0A898]">🚶 {formatDist(totalDist)}</span>
+                  <span className="text-xs" style={{ color: "var(--color-teal)" }}>🚶 {formatDist(totalDist)}</span>
                 )}
               </div>
               <div className="space-y-3">
@@ -116,34 +120,36 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
                   <button
                     key={log.quest_id}
                     onClick={() => setSelected(log)}
-                    className="w-full rounded-xl bg-white p-4 text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
+                    className="card-glass w-full p-4 text-left transition active:scale-[0.99]"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm">{log.god_type === "wanderer" ? "🌬️" : "⛩️"}</span>
-                        <span className="font-wafuu text-sm font-medium text-[#6B8E7B]">{log.god_name}</span>
+                        <span className="font-wafuu text-sm font-medium text-gold">{log.god_name}</span>
                       </div>
-                      <span className="text-xs text-[#B0A898]">
+                      <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                         {log.completed_at ? new Date(log.completed_at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) : ""}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-[#5A5A5A]">{log.mission_text}</p>
+                    <p className="mt-2 text-sm" style={{ color: "var(--color-text-sub)" }}>{log.mission_text}</p>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-xs text-[#B0A898]">{log.start_area_name}</span>
+                      <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>{log.start_area_name}</span>
                       {log.distance > 0 && (
-                        <span className="text-xs text-[#6B8E7B]">🚶 {formatDist(log.distance)}</span>
+                        <span className="rounded-full px-2 py-0.5 text-xs" style={{ background: "rgba(78,205,196,0.15)", color: "var(--color-teal)" }}>
+                          🚶 {formatDist(log.distance)}
+                        </span>
                       )}
                     </div>
                     {log.item_name && (
-                      <div className="mt-3 flex items-center gap-2 rounded-lg bg-[#FFF8F0] p-2">
+                      <div className="mt-3 flex items-center gap-2 rounded-lg p-2" style={{ background: "rgba(232,184,73,0.1)" }}>
                         {log.item_image_url ? (
                           <img src={log.item_image_url} alt={log.item_name} className="h-6 w-6 rounded object-cover" />
                         ) : (
                           <span className="text-sm">✨</span>
                         )}
-                        <span className="text-xs font-medium text-[#8B7E6A]">{log.item_name}</span>
+                        <span className="text-xs font-medium" style={{ color: "var(--color-text)" }}>{log.item_name}</span>
                         {log.item_rarity && (
-                          <span className="ml-auto text-[10px] text-yellow-500">{"★".repeat(log.item_rarity)}</span>
+                          <span className="ml-auto text-[10px]" style={{ color: "var(--color-gold)" }}>{"★".repeat(log.item_rarity)}</span>
                         )}
                       </div>
                     )}
@@ -158,31 +164,31 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
       {/* 詳細モーダル */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
           onClick={() => setSelected(null)}
         >
           <div
-            className="max-h-[90dvh] w-full max-w-md animate-[fadeInUp_0.3s_ease-out] overflow-y-auto rounded-t-3xl bg-[#FFF8F0] p-6 safe-bottom"
+            className="card-glass max-h-[90dvh] w-full max-w-md animate-[fadeInUp_0.3s_ease-out] overflow-y-auto rounded-t-3xl p-6 safe-bottom"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#D4C5B0]" />
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full" style={{ background: "var(--color-border)" }} />
 
             <div className="flex items-center gap-2">
               <span>{selected.god_type === "wanderer" ? "🌬️" : "⛩️"}</span>
-              <span className="font-wafuu font-bold text-[#6B8E7B]">{selected.god_name}</span>
-              <span className="ml-auto text-xs text-[#B0A898]">
+              <span className="font-wafuu font-bold text-gold">{selected.god_name}</span>
+              <span className="ml-auto text-xs" style={{ color: "var(--color-text-muted)" }}>
                 {selected.completed_at ? new Date(selected.completed_at).toLocaleDateString("ja-JP") : ""}
               </span>
             </div>
 
-            <p className="mt-3 text-sm leading-relaxed text-[#5A5A5A]">{selected.mission_text}</p>
+            <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>{selected.mission_text}</p>
             <div className="mt-2 flex items-center gap-2">
-              <span className="rounded-full bg-[#E8DFD0] px-2 py-0.5 text-xs text-[#8B7E6A]">
+              <span className="rounded-full px-2 py-0.5 text-xs" style={{ background: "var(--color-card)", color: "var(--color-text-sub)" }}>
                 {selected.mission_type === "direction" ? "方角・距離" : selected.mission_type === "discovery" ? "発見" : "体験"}
               </span>
-              <span className="text-xs text-[#B0A898]">{selected.start_area_name}</span>
+              <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>{selected.start_area_name}</span>
               {calcRouteDistance(selected.route_log) > 0 && (
-                <span className="ml-auto text-xs text-[#6B8E7B]">
+                <span className="ml-auto text-xs" style={{ color: "var(--color-teal)" }}>
                   🚶 {formatDist(calcRouteDistance(selected.route_log))}
                 </span>
               )}
@@ -191,7 +197,7 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
             {/* Leafletルートマップ */}
             {selected.route_log && selected.route_log.length > 1 && (
               <div className="mt-4">
-                <p className="mb-2 text-xs font-medium text-[#8B7E6A]">歩いたルート</p>
+                <p className="mb-2 text-xs font-medium" style={{ color: "var(--color-text-sub)" }}>歩いたルート</p>
                 <RouteMapMapbox
                   route={selected.route_log}
                   startLat={selected.start_lat}
@@ -203,25 +209,26 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
             )}
 
             {selected.item_name && (
-              <div className="mt-4 flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm">
+              <div className="card-glass mt-4 flex items-center gap-3 p-3">
                 {selected.item_image_url ? (
                   <img src={selected.item_image_url} alt={selected.item_name} className="h-14 w-14 rounded-lg object-cover" />
                 ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#E8DFD0]">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-lg" style={{ background: "var(--color-card)" }}>
                     <span className="text-2xl">✨</span>
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#5A5A5A]">{selected.item_name}</p>
-                  {selected.item_rarity && <p className="text-xs text-yellow-500">{"★".repeat(selected.item_rarity)}</p>}
-                  {selected.item_description && <p className="mt-0.5 text-xs text-[#B0A898]">{selected.item_description}</p>}
+                  <p className="text-sm font-medium" style={{ color: "var(--color-text)" }}>{selected.item_name}</p>
+                  {selected.item_rarity && <p className="text-xs" style={{ color: "var(--color-gold)" }}>{"★".repeat(selected.item_rarity)}</p>}
+                  {selected.item_description && <p className="mt-0.5 text-xs" style={{ color: "var(--color-text-muted)" }}>{selected.item_description}</p>}
                 </div>
               </div>
             )}
 
             <button
               onClick={() => setSelected(null)}
-              className="mt-6 w-full rounded-xl border border-[#D4C5B0] px-4 py-3 text-center text-sm font-medium text-[#8B7E6A] transition hover:bg-white"
+              className="btn-ghost mt-6 w-full text-center text-sm"
+              style={{ border: "1px solid var(--color-border)" }}
             >
               閉じる
             </button>
@@ -316,10 +323,10 @@ function RouteMapMapbox({
 
   return (
     <div
-      className="overflow-hidden rounded-xl border border-[#D4C5B0] shadow-sm"
-      style={{ filter: "sepia(0.3) saturate(0.8) brightness(1.05)" }}
+      className="overflow-hidden rounded-xl shadow-sm"
+      style={{ border: "2px solid var(--color-gold)", boxShadow: "0 0 12px rgba(232,184,73,0.2)" }}
     >
-      <div ref={containerRef} className="h-[200px] w-full" style={{ background: "#F5EDE0" }} />
+      <div ref={containerRef} className="h-[200px] w-full" style={{ background: "var(--color-bg-primary)" }} />
     </div>
   );
 }

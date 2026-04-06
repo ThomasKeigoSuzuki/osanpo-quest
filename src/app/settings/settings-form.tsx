@@ -74,12 +74,12 @@ export function SettingsForm() {
 
   return (
     <div className="px-4 pt-8 pb-4">
-      <h1 className="font-wafuu text-xl font-bold text-[#6B8E7B]">設定</h1>
+      <h1 className="font-wafuu text-xl font-bold text-gold">設定</h1>
 
       <div className="mt-8 space-y-4">
         {/* 表示名 */}
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <label htmlFor="display-name" className="block text-sm font-medium text-[#8B7E6A]">
+        <div className="card-glass p-4">
+          <label htmlFor="display-name" className="block text-sm font-medium" style={{ color: "var(--color-text-sub)" }}>
             表示名
           </label>
           <div className="mt-3 flex gap-2">
@@ -89,43 +89,52 @@ export function SettingsForm() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={20}
-              className="min-h-[44px] flex-1 rounded-xl border border-[#D4C5B0] bg-[#FFF8F0] px-4 py-3 text-sm text-[#5A5A5A] outline-none focus:border-[#6B8E7B] focus:ring-1 focus:ring-[#6B8E7B]"
+              className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-sm outline-none transition"
+              style={{
+                background: "rgba(0,0,0,0.3)",
+                color: "var(--color-text)",
+                border: "1px solid var(--color-border)",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "var(--color-gold)";
+                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(232,184,73,0.3)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "var(--color-border)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
             />
             <button
               onClick={handleSaveName}
               disabled={!nameChanged || saving}
-              className={`min-h-[44px] shrink-0 rounded-xl px-5 py-3 text-sm font-medium transition ${
-                nameChanged
-                  ? "bg-[#6B8E7B] text-white hover:bg-[#5A7D6A]"
-                  : "bg-[#E8DFD0] text-[#B0A898] cursor-not-allowed"
-              }`}
+              className="btn-primary min-h-[44px] shrink-0 !px-5 !py-3 text-sm"
             >
               {saving ? "保存中..." : saved ? "保存済み" : "保存"}
             </button>
           </div>
-          <p className="mt-1.5 text-right text-[11px] text-[#B0A898]">
+          <p className="mt-1.5 text-right text-[11px] text-gold">
             {displayName.length}/20
           </p>
         </div>
 
         {/* アカウント */}
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-medium text-[#8B7E6A]">アカウント</h2>
+        <div className="card-glass p-4">
+          <h2 className="text-sm font-medium" style={{ color: "var(--color-text-sub)" }}>アカウント</h2>
           {email && (
-            <p className="mt-2 text-xs text-[#B0A898]">{email}</p>
+            <p className="mt-2 text-xs" style={{ color: "var(--color-text-muted)" }}>{email}</p>
           )}
           <button
             onClick={handleLogout}
-            className="mt-3 min-h-[44px] w-full rounded-xl border border-[#D4C5B0] px-4 py-3 text-sm text-[#8B7E6A] transition hover:bg-[#FFF8F0]"
+            className="btn-secondary mt-3 min-h-[44px] w-full !px-4 !py-3 text-sm"
           >
             ログアウト
           </button>
         </div>
 
         {/* アプリ情報 */}
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-medium text-[#8B7E6A]">アプリ情報</h2>
-          <p className="mt-2 text-xs text-[#B0A898]">
+        <div className="card-glass p-4">
+          <h2 className="text-sm font-medium" style={{ color: "var(--color-text-sub)" }}>アプリ情報</h2>
+          <p className="mt-2 text-xs" style={{ color: "var(--color-text-muted)" }}>
             おさんぽクエスト v0.1.0
           </p>
         </div>

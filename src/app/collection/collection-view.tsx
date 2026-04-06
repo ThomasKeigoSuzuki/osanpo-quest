@@ -50,20 +50,20 @@ export function CollectionView({ items }: { items: Item[] }) {
 
   return (
     <div className="px-4 pt-8 pb-4">
-      <h1 className="text-xl font-bold text-[#6B8E7B]">コレクション</h1>
-      <p className="mt-1 text-sm text-[#B0A898]">
+      <h1 className="font-wafuu text-xl font-bold text-gold">コレクション</h1>
+      <p className="mt-1 text-sm" style={{ color: "var(--color-text-sub)" }}>
         集めたアイテム: {items.length}個
       </p>
 
       {items.length === 0 ? (
-        <div className="mt-20 text-center text-[#B0A898]">
+        <div className="card-glass mt-20 p-6 text-center">
           <p className="text-4xl">📦</p>
-          <p className="mt-3 text-sm">
+          <p className="mt-3 text-sm" style={{ color: "var(--color-text-sub)" }}>
             まだアイテムがありません。
             <br />
             クエストをクリアして最初のアイテムを手に入れよう！
           </p>
-          <p className="mt-4 text-xs italic text-[#B0A898]">
+          <p className="mt-4 text-xs italic text-gold">
             「まだ何も持ってないの？ ふふ、最初の冒険に出かけてみなよ！」
             <br />
             <span className="font-wafuu not-italic">—シナコ</span>
@@ -77,11 +77,16 @@ export function CollectionView({ items }: { items: Item[] }) {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${
+                className={`card-glass shrink-0 px-4 py-2 text-xs font-medium transition ${
                   activeTab === tab.key
-                    ? "bg-[#6B8E7B] text-white shadow-sm"
-                    : "bg-white text-[#8B7E6A] shadow-sm"
+                    ? "text-gold border-b-2"
+                    : ""
                 }`}
+                style={
+                  activeTab === tab.key
+                    ? { borderBottomColor: "var(--color-gold)" }
+                    : { color: "var(--color-text-muted)" }
+                }
               >
                 {tab.label}
                 <span className="ml-1 opacity-60">{tab.items.length}</span>
@@ -89,44 +94,46 @@ export function CollectionView({ items }: { items: Item[] }) {
             ))}
           </div>
 
-          {/* 神棚風グリッド */}
-          <div className="mt-4">
-            {/* 棚板デザイン */}
-            <div className="rounded-t-2xl border border-b-0 border-[#D4C5B0] bg-gradient-to-b from-[#F5EDE0] to-[#EDE4D4] p-4">
-              <div className="grid grid-cols-3 gap-3">
-                {currentItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setSelectedItem(item)}
-                    className="flex flex-col items-center rounded-xl bg-white/80 p-2.5 shadow-sm transition hover:shadow-md active:scale-[0.97]"
-                  >
-                    {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="h-20 w-20 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gradient-to-br from-[#E8DFD0] to-[#D4C5B0]">
-                        <span className="text-3xl">✨</span>
-                      </div>
-                    )}
-                    <p className="mt-1.5 w-full truncate text-center text-xs font-medium text-[#5A5A5A]">
-                      {item.name}
-                    </p>
-                    <div className="mt-0.5 flex">
-                      {Array.from({ length: item.rarity }).map((_, i) => (
-                        <span key={i} className="text-[8px] text-yellow-500">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            {/* 棚板の影 */}
-            <div className="h-3 rounded-b-lg bg-gradient-to-b from-[#C4B59E] to-[#D4C5B0] shadow-md" />
+          {/* アイテムグリッド */}
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {currentItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setSelectedItem(item)}
+                className={`card-glass flex flex-col items-center p-2.5 transition active:scale-[0.97] ${
+                  item.rarity >= 4 ? "glow-gold" : ""
+                }`}
+              >
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="h-20 w-20 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-lg" style={{ background: "var(--color-card)" }}>
+                    <span className="text-3xl">✨</span>
+                  </div>
+                )}
+                <p className="mt-1.5 w-full truncate text-center text-xs font-medium" style={{ color: "var(--color-text)" }}>
+                  {item.name}
+                </p>
+                <div className="mt-0.5 flex">
+                  {Array.from({ length: item.rarity }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="text-[8px]"
+                      style={{
+                        color: "var(--color-gold)",
+                        animation: "starGlow 2s ease-in-out infinite",
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              </button>
+            ))}
           </div>
         </>
       )}
@@ -134,15 +141,15 @@ export function CollectionView({ items }: { items: Item[] }) {
       {/* アイテム詳細モーダル */}
       {selectedItem && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
           onClick={() => setSelectedItem(null)}
         >
           <div
-            className="w-full max-w-md animate-[fadeInUp_0.3s_ease-out] rounded-t-3xl bg-[#FFF8F0] p-6 safe-bottom"
+            className="card-glass w-full max-w-md animate-[fadeInUp_0.3s_ease-out] rounded-t-3xl p-6 safe-bottom"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ハンドル */}
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#D4C5B0]" />
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full" style={{ background: "var(--color-border)" }} />
 
             <div className="flex flex-col items-center">
               {selectedItem.image_url ? (
@@ -150,30 +157,41 @@ export function CollectionView({ items }: { items: Item[] }) {
                   src={selectedItem.image_url}
                   alt={selectedItem.name}
                   className="h-40 w-40 rounded-2xl object-cover shadow-lg"
+                  style={{ border: "2px solid var(--color-gold)", boxShadow: "0 0 20px rgba(232,184,73,0.3)" }}
                 />
               ) : (
-                <div className="flex h-40 w-40 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E8DFD0] to-[#D4C5B0] shadow-lg">
+                <div
+                  className="flex h-40 w-40 items-center justify-center rounded-2xl shadow-lg"
+                  style={{ background: "var(--color-card)", border: "2px solid var(--color-gold)" }}
+                >
                   <span className="text-6xl">✨</span>
                 </div>
               )}
 
-              <h2 className="mt-4 text-xl font-bold text-[#6B8E7B]">
+              <h2 className="mt-4 text-xl font-bold text-gold">
                 {selectedItem.name}
               </h2>
 
               <div className="mt-1 flex">
                 {Array.from({ length: selectedItem.rarity }).map((_, i) => (
-                  <span key={i} className="text-sm text-yellow-500">
+                  <span
+                    key={i}
+                    className="text-sm"
+                    style={{
+                      color: "var(--color-gold)",
+                      animation: "starGlow 2s ease-in-out infinite",
+                    }}
+                  >
                     ★
                   </span>
                 ))}
               </div>
 
-              <p className="mt-3 text-center text-sm leading-relaxed text-[#5A5A5A]">
+              <p className="mt-3 text-center text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
                 {selectedItem.description}
               </p>
 
-              <div className="mt-4 space-y-1.5 text-center text-xs text-[#B0A898]">
+              <div className="mt-4 space-y-1.5 text-center text-xs" style={{ color: "var(--color-text-muted)" }}>
                 <p>
                   {selectedItem.category === "material"
                     ? "素材"
@@ -183,7 +201,7 @@ export function CollectionView({ items }: { items: Item[] }) {
                         ? "合成品"
                         : "秘宝"}
                   {" · "}
-                  <span className="font-wafuu">{selectedItem.god_name}</span>より
+                  <span className="font-wafuu text-gold">{selectedItem.god_name}</span>より
                 </p>
                 {selectedItem.area_name && (
                   <p>📍 {selectedItem.area_name}</p>
@@ -201,7 +219,8 @@ export function CollectionView({ items }: { items: Item[] }) {
 
             <button
               onClick={() => setSelectedItem(null)}
-              className="mt-6 w-full rounded-xl border border-[#D4C5B0] px-4 py-3 text-center text-sm font-medium text-[#8B7E6A] transition hover:bg-white"
+              className="btn-ghost mt-6 w-full text-center text-sm"
+              style={{ border: "1px solid var(--color-border)" }}
             >
               閉じる
             </button>
