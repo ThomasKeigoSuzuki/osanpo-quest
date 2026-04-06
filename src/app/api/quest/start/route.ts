@@ -11,6 +11,7 @@ import {
 } from "@/lib/prompts";
 import { generateGodImage } from "@/lib/image-generation";
 import { isValidLatLng } from "@/lib/validation";
+import { getDailyQuestConfig, getStreakBonus, getTodayDateString } from "@/lib/daily-quest";
 
 type QuestGeneration = {
   mission_text: string;
@@ -43,10 +44,11 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { lat, lng, god_preference = "random" } = body as {
+  const { lat, lng, god_preference = "random", is_daily = false } = body as {
     lat: number;
     lng: number;
     god_preference?: "wanderer" | "local" | "random";
+    is_daily?: boolean;
   };
 
   if (!isValidLatLng(lat, lng)) {
@@ -54,6 +56,24 @@ export async function POST(request: Request) {
       { error: "Valid lat and lng are required" },
       { status: 400 }
     );
+  }
+
+  // デイリークエストチェック
+  if (is_daily) {
+    const today = getTodayDateString();
+    const { data: existing } = await supabase
+      .from("daily_quests")
+      .select("completed")
+      .eq("user_id", user.id)
+      .eq("quest_date", today)
+      .single();
+
+    if (existing?.completed) {
+      return NextResponse.json(
+        { error: "今日のデイリークエストは完了済みです" },
+        { status: 400 }
+      );
+    }
   }
 
   // 1. 逆ジオコーディングで地名取得
@@ -214,6 +234,17 @@ export async function POST(request: Request) {
       { error: "Failed to create quest", detail: questError?.message },
       { status: 500 }
     );
+  }
+
+  // 4.5 デイリークエストの場合、daily_questsに記録
+  if (is_daily) {
+    const today = getTodayDateString();
+    await supabase.from("daily_quests").upsert({
+      user_id: user.id,
+      quest_date: today,
+      quest_id: questRow.id,
+      completed: false,
+    }, { onConflict: "user_id,quest_date" });
   }
 
   // 5. レスポンス返却

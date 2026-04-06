@@ -8,6 +8,7 @@ import {
 } from "@/lib/prompts";
 import { generateItemImage } from "@/lib/image-generation";
 import { isValidLatLng, isValidUUID } from "@/lib/validation";
+import { getStreakBonus } from "@/lib/daily-quest";
 
 type ItemGeneration = {
   name: string;
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
       sub_category: itemData.sub_category || null,
       area_name: quest.god_type === "local" ? quest.start_area_name : null,
       god_name: quest.god_name,
-      rarity: Math.min(5, Math.max(1, itemData.rarity)),
+      rarity: Math.min(5, Math.max(1, itemData.rarity)), // ストリークボーナスは後で加算
     })
     .select()
     .single();
@@ -105,6 +106,39 @@ export async function POST(request: Request) {
       { error: "Failed to create item" },
       { status: 500 }
     );
+  }
+
+  // デイリークエストの場合: 完了+ストリークボーナス
+  const { data: dailyRecord } = await supabase
+    .from("daily_quests")
+    .select("id")
+    .eq("quest_id", quest_id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (dailyRecord) {
+    await supabase
+      .from("daily_quests")
+      .update({ completed: true })
+      .eq("id", dailyRecord.id);
+
+    // ストリークボーナスでレアリティを上げる
+    const { data: userStreak } = await supabase
+      .from("users")
+      .select("login_streak")
+      .eq("id", user.id)
+      .single();
+
+    if (userStreak) {
+      const bonus = getStreakBonus(userStreak.login_streak);
+      if (bonus.rarityBonus > 0) {
+        const newRarity = Math.min(5, item.rarity + bonus.rarityBonus);
+        if (newRarity > item.rarity) {
+          await supabase.from("items").update({ rarity: newRarity } as Record<string, unknown>).eq("id", item.id);
+          item.rarity = newRarity;
+        }
+      }
+    }
   }
 
   let imageUrl = item.image_url;

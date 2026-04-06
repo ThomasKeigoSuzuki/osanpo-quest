@@ -8,6 +8,10 @@ export type Database = {
           total_quests_completed: number;
           created_at: string;
           updated_at: string;
+          login_streak: number;
+          last_login_date: string | null;
+          longest_streak: number;
+          active_title_id: string | null;
         };
         Insert: {
           id: string;
@@ -15,12 +19,18 @@ export type Database = {
           total_quests_completed?: number;
           created_at?: string;
           updated_at?: string;
+          login_streak?: number;
+          last_login_date?: string;
+          longest_streak?: number;
         };
         Update: {
           id?: string;
           display_name?: string;
           total_quests_completed?: number;
           updated_at?: string;
+          login_streak?: number;
+          last_login_date?: string;
+          longest_streak?: number;
         };
         Relationships: [];
       };
@@ -142,6 +152,29 @@ export type Database = {
         };
         Update: {
           image_url?: string;
+        };
+        Relationships: [];
+      };
+      daily_quests: {
+        Row: {
+          id: string;
+          user_id: string;
+          quest_date: string;
+          quest_id: string | null;
+          completed: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          quest_date: string;
+          quest_id?: string | null;
+          completed?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          completed?: boolean;
+          quest_id?: string;
         };
         Relationships: [];
       };

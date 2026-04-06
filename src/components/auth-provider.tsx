@@ -3,11 +3,6 @@
 import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-/**
- * 未認証ユーザーを自動的に匿名サインインさせる。
- * Supabase の signInAnonymously() で実際の user ID が付与され、
- * DB の RLS も全機能もそのまま動作する。
- */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const initialized = useRef(false);
 
@@ -25,7 +20,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error } = await supabase.auth.signInAnonymously();
         if (error) {
           console.error("[AuthProvider] Anonymous sign-in failed:", error.message);
+          return;
         }
+      }
+
+      // チェックイン（ストリーク更新）
+      try {
+        await fetch("/api/daily/check-in");
+      } catch {
+        // サイレント失敗
       }
     }
 
