@@ -53,7 +53,7 @@ export function MisuOverlay({
         className="h-full w-full object-cover"
         style={{
           filter: charFilter,
-          objectPosition: "center 15%",
+          objectPosition: "center 30%",
           animation: type === "shinako" ? "hairSway 6s ease-in-out infinite" : undefined,
           transition: "filter 1s ease",
         }}
