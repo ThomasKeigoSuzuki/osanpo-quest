@@ -236,7 +236,7 @@ export async function POST(request: Request) {
       bond_exp: 1,
       total_quests: 1,
       last_quest_at: new Date().toISOString(),
-      god_image_url: quest.god_type === "wanderer" ? "/shinako.png" : null,
+      god_image_url: quest.god_type === "wanderer" ? "/shinako-full.png" : null,
     });
     const bl = getBondLevel(1);
     bondNewLevel = bl.level;
