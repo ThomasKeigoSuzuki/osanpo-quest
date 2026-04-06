@@ -38,9 +38,11 @@ function CompleteContent() {
 
   const rankStr = searchParams.get("rank");
   let rankInfo: { points_gained: number; total_points: number; rank: number; rank_name: string; rank_icon: string; ranked_up: boolean } | null = null;
-  if (rankStr) {
-    try { rankInfo = JSON.parse(rankStr); } catch {}
-  }
+  if (rankStr) { try { rankInfo = JSON.parse(rankStr); } catch {} }
+
+  const revealStr = searchParams.get("reveal");
+  let revealInfo: { new_stage: number; message: string } | null = null;
+  if (revealStr) { try { revealInfo = JSON.parse(revealStr); } catch {} }
 
   const [stage, setStage] = useState(0);
   const [showFlash, setShowFlash] = useState(false);
@@ -230,6 +232,25 @@ function CompleteContent() {
                   +{rankInfo.points_gained} RP
                 </span>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* 御簾解放演出 */}
+        {revealInfo && stage >= 4 && (
+          <div className={`card-glass mt-3 w-full p-3 text-center transition-all duration-500 ${stage >= 4 ? "opacity-100" : "opacity-0"}`}>
+            {revealInfo.new_stage === 5 ? (
+              <>
+                <p className="text-sm font-bold text-gold animate-[starGlow_1.5s_ease-in-out_infinite]">
+                  ✨ シナコが姿を現した！
+                </p>
+                <p className="mt-1 text-xs" style={{ color: "var(--color-text-sub)" }}>「{revealInfo.message}」</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-medium" style={{ color: "var(--color-accent)" }}>御簾が少し上がった…</p>
+                <p className="mt-0.5 text-[10px]" style={{ color: "var(--color-text-sub)" }}>「{revealInfo.message}」</p>
+              </>
             )}
           </div>
         )}

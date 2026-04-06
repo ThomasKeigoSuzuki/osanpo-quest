@@ -6,6 +6,8 @@ import { getDailyQuestConfig, getCategoryBonusLabel, getTodayDateString } from "
 import { getBondLevel } from "@/lib/bond-system";
 import { getRank } from "@/lib/rank-system";
 import { getShinakoDialogue } from "@/lib/shinako-dialogue";
+import { getNextRevealThreshold } from "@/lib/shinako-reveal";
+import { MisuOverlay } from "@/components/misu-overlay";
 
 const SHINAKO_IMG = "/shinako-full.png";
 
@@ -23,6 +25,7 @@ export default async function HomePage() {
   let shinakoBondLevel = 1;
   let shinakoBond: { level: number; name: string } | null = null;
   let rankInfo = getRank(0);
+  let revealStage = 1;
 
   if (user) {
     const { data: p } = await supabase.from("users").select("display_name, total_quests_completed, login_streak").eq("id", user.id).single<UserProfile>();
@@ -38,8 +41,8 @@ export default async function HomePage() {
     dailyCompleted = daily?.completed ?? false;
     const { data: bond } = await supabase.from("god_bonds").select("bond_exp").eq("user_id", user.id).eq("god_name", "シナコ").single();
     if (bond) { const bl = getBondLevel(bond.bond_exp); shinakoBondLevel = bl.level; if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name }; }
-    const { data: rp } = await supabase.from("users").select("rank_points").eq("id", user.id).single();
-    if (rp) rankInfo = getRank(rp.rank_points);
+    const { data: rp } = await supabase.from("users").select("rank_points, shinako_reveal_stage").eq("id", user.id).single();
+    if (rp) { rankInfo = getRank(rp.rank_points); revealStage = rp.shinako_reveal_stage ?? 1; }
   }
 
   const jstDay = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })).getDay();
@@ -94,27 +97,35 @@ export default async function HomePage() {
         )}
       </div>
 
-      {/* ===== シナコ (z-10, 大きく表示) ===== */}
+      {/* ===== シナコ + 御簾 (z-10) ===== */}
       <Link
         href="/bonds"
         className="absolute left-1/2 z-10 -translate-x-1/2 transition active:scale-[1.02]"
         style={{ top: "3%", width: "85%", maxWidth: 380 }}
       >
-        <img
-          src={SHINAKO_IMG}
-          alt="シナコ"
-          className="w-full object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
-          style={{ maxHeight: "65dvh", animation: "hairSway 6s ease-in-out infinite" }}
-        />
-        {shinakoBond && (
-          <span className="absolute left-0 top-0 rounded-br-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
-            💫 Lv.{shinakoBond.level} {shinakoBond.name}
-          </span>
-        )}
-        {/* 風の光粒 */}
-        {[25, 42, 58, 75].map((left, i) => (
-          <div key={i} className="absolute h-1.5 w-1.5 rounded-full bg-white" style={{ bottom: "8%", left: `${left}%`, opacity: 0, animation: `windParticle 3s ease-in-out infinite ${i * 1.2}s` }} />
-        ))}
+        <MisuOverlay
+          stage={revealStage}
+          characterSrc={SHINAKO_IMG}
+          characterAlt="シナコ"
+          type="shinako"
+        >
+          {shinakoBond && (
+            <span className="absolute left-0 top-0 z-20 rounded-br-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
+              💫 Lv.{shinakoBond.level} {shinakoBond.name}
+            </span>
+          )}
+        </MisuOverlay>
+        {/* 次の解放まで */}
+        {revealStage < 5 && (() => {
+          const next = getNextRevealThreshold(revealStage);
+          const current = profile?.total_quests_completed ?? 0;
+          const remaining = next ? next - current : 0;
+          return remaining > 0 ? (
+            <p className="mt-1 text-center text-[9px]" style={{ color: "var(--color-text-muted)" }}>
+              あと {remaining} クエストで姿が見える…
+            </p>
+          ) : null;
+        })()}
       </Link>
 
       {/* ===== セリフ (z-30) ===== */}

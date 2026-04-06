@@ -14,6 +14,7 @@ export type Database = {
           active_title_id: string | null;
           rank_points: number;
           adventurer_rank: number;
+          shinako_reveal_stage: number;
         };
         Insert: {
           id: string;
@@ -26,6 +27,7 @@ export type Database = {
           longest_streak?: number;
           rank_points?: number;
           adventurer_rank?: number;
+          shinako_reveal_stage?: number;
         };
         Update: {
           id?: string;
@@ -37,6 +39,7 @@ export type Database = {
           longest_streak?: number;
           rank_points?: number;
           adventurer_rank?: number;
+          shinako_reveal_stage?: number;
         };
         Relationships: [];
       };
@@ -173,6 +176,8 @@ export type Database = {
           first_met_at: string;
           last_quest_at: string | null;
           god_image_url: string | null;
+          offerings_count: number;
+          reveal_stage: number;
           created_at: string;
         };
         Insert: {
@@ -186,6 +191,8 @@ export type Database = {
           first_met_at?: string;
           last_quest_at?: string;
           god_image_url?: string | null;
+          offerings_count?: number;
+          reveal_stage?: number;
         };
         Update: {
           bond_level?: number;
@@ -193,7 +200,27 @@ export type Database = {
           total_quests?: number;
           last_quest_at?: string;
           god_image_url?: string | null;
+          offerings_count?: number;
+          reveal_stage?: number;
         };
+        Relationships: [];
+      };
+      offerings: {
+        Row: {
+          id: string;
+          user_id: string;
+          god_name: string;
+          item_id: string;
+          offered_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          god_name: string;
+          item_id: string;
+          offered_at?: string;
+        };
+        Update: Record<string, never>;
         Relationships: [];
       };
       daily_quests: {

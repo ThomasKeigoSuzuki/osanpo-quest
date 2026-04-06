@@ -219,6 +219,20 @@ body {
   50%      { text-shadow: 0 0 12px rgba(232,184,73,0.9); }
 }
 
+@keyframes misuSway {
+  0%, 100% { transform: translateY(var(--misu-y, 0%)) skewX(0deg); }
+  30%      { transform: translateY(var(--misu-y, 0%)) skewX(0.8deg); }
+  70%      { transform: translateY(var(--misu-y, 0%)) skewX(-0.8deg); }
+}
+
+@keyframes misuTapReact {
+  0%   { transform: translateY(var(--misu-y, 0%)) skewX(0deg); }
+  20%  { transform: translateY(var(--misu-y, 0%)) skewX(2deg); }
+  40%  { transform: translateY(var(--misu-y, 0%)) skewX(-1.5deg); }
+  60%  { transform: translateY(var(--misu-y, 0%)) skewX(0.5deg); }
+  100% { transform: translateY(var(--misu-y, 0%)) skewX(0deg); }
+}
+
 @keyframes hairSway {
   0%, 100% { transform: skewX(0deg) translateX(0); }
   25%      { transform: skewX(0.5deg) translateX(1px); }

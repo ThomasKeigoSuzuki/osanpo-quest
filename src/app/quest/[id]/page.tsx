@@ -122,6 +122,7 @@ export default function QuestProgressPage() {
         let url = `/quest/${id}/complete?item=${encodeURIComponent(JSON.stringify(data.item))}&message=${encodeURIComponent(data.god_message)}`;
         if (data.bond_info) url += `&bond=${encodeURIComponent(JSON.stringify(data.bond_info))}`;
         if (data.rank_info) url += `&rank=${encodeURIComponent(JSON.stringify(data.rank_info))}`;
+        if (data.shinako_reveal) url += `&reveal=${encodeURIComponent(JSON.stringify(data.shinako_reveal))}`;
         router.push(url);
       }
       else { setError(data.error || "クリア判定に失敗"); setCompleting(false); }

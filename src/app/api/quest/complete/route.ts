@@ -11,6 +11,7 @@ import { isValidLatLng, isValidUUID } from "@/lib/validation";
 import { getStreakBonus } from "@/lib/daily-quest";
 import { getBondLevel } from "@/lib/bond-system";
 import { getRank, getPointsForAction } from "@/lib/rank-system";
+import { getShinakoRevealStage, getShinakoRevealMessage } from "@/lib/shinako-reveal";
 
 type ItemGeneration = {
   name: string;
@@ -168,18 +169,32 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("total_quests_completed")
+    .select("total_quests_completed, shinako_reveal_stage")
     .eq("id", user.id)
     .single();
 
+  let shinakoReveal: { new_stage: number; message: string } | null = null;
+
   if (profile) {
+    const newTotal = profile.total_quests_completed + 1;
+    const newRevealStage = getShinakoRevealStage(newTotal);
+    const oldRevealStage = profile.shinako_reveal_stage ?? 1;
+
     await supabase
       .from("users")
       .update({
-        total_quests_completed: profile.total_quests_completed + 1,
+        total_quests_completed: newTotal,
+        shinako_reveal_stage: newRevealStage,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
+
+    if (newRevealStage > oldRevealStage) {
+      shinakoReveal = {
+        new_stage: newRevealStage,
+        message: getShinakoRevealMessage(newRevealStage),
+      };
+    }
   }
 
   // 絆経験値の加算
@@ -283,5 +298,6 @@ export async function POST(request: Request) {
       rank_icon: newRankInfo.icon,
       ranked_up: rankedUp,
     },
+    shinako_reveal: shinakoReveal,
   });
 }
