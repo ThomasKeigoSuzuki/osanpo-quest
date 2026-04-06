@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { getDistanceMeters } from "@/lib/geo";
 
 type RoutePoint = { lat: number; lng: number; timestamp: string };
@@ -183,7 +183,7 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
             {selected.route_log && selected.route_log.length > 1 && (
               <div className="mt-4">
                 <p className="mb-2 text-xs font-medium text-[#8B7E6A]">歩いたルート</p>
-                <RouteMapLeaflet
+                <RouteMapMapbox
                   route={selected.route_log}
                   startLat={selected.start_lat}
                   startLng={selected.start_lng}
@@ -223,8 +223,8 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
   );
 }
 
-/** Leaflet を使ったルートマップ */
-function RouteMapLeaflet({
+/** Mapbox を使ったルートマップ */
+function RouteMapMapbox({
   route,
   startLat,
   startLng,
@@ -238,64 +238,63 @@ function RouteMapLeaflet({
   goalLng: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const map = L.map(containerRef.current, {
-      zoomControl: false,
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+
+    const coords = route.map((p) => [p.lng, p.lat] as [number, number]);
+    const allLngs = [...coords.map((c) => c[0]), startLng, goalLng];
+    const allLats = [...coords.map((c) => c[1]), startLat, goalLat];
+
+    const map = new mapboxgl.Map({
+      container: containerRef.current,
+      style: "mapbox://styles/mapbox/outdoors-v12",
+      center: [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2],
+      zoom: 14,
+      interactive: true,
       attributionControl: false,
-      dragging: true,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      touchZoom: true,
-      boxZoom: false,
+      dragRotate: false,
+      scrollZoom: false,
     });
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap",
-    }).addTo(map);
+    map.on("load", () => {
+      // ルートライン
+      map.addSource("route", {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          properties: {},
+          geometry: { type: "LineString", coordinates: coords },
+        },
+      });
+      map.addLayer({
+        id: "route-line",
+        type: "line",
+        source: "route",
+        paint: { "line-color": "#6B8E7B", "line-width": 3, "line-opacity": 0.8 },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
 
-    // ルートライン
-    const latlngs = route.map((p) => [p.lat, p.lng] as L.LatLngTuple);
-    const polyline = L.polyline(latlngs, {
-      color: "#6B8E7B",
-      weight: 3,
-      opacity: 0.8,
-      lineCap: "round",
-      lineJoin: "round",
-    }).addTo(map);
+      // 全体が見えるようにフィット
+      const bounds = new mapboxgl.LngLatBounds();
+      coords.forEach((c) => bounds.extend(c));
+      bounds.extend([startLng, startLat]);
+      bounds.extend([goalLng, goalLat]);
+      map.fitBounds(bounds, { padding: 30 });
+    });
 
     // スタートマーカー
-    L.marker([startLat, startLng], {
-      icon: L.divIcon({
-        html: '<div style="width:12px;height:12px;background:#6B8E7B;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>',
-        className: "",
-        iconSize: [12, 12],
-        iconAnchor: [6, 6],
-      }),
-    }).addTo(map);
+    const startEl = document.createElement("div");
+    startEl.innerHTML = '<div style="width:12px;height:12px;background:#6B8E7B;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>';
+    new mapboxgl.Marker({ element: startEl }).setLngLat([startLng, startLat]).addTo(map);
 
     // ゴールマーカー
-    L.marker([goalLat, goalLng], {
-      icon: L.divIcon({
-        html: '<div style="width:12px;height:12px;background:#E85D4A;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>',
-        className: "",
-        iconSize: [12, 12],
-        iconAnchor: [6, 6],
-      }),
-    }).addTo(map);
-
-    // ルート全体が見えるようにフィット
-    const allPoints: L.LatLngTuple[] = [
-      ...latlngs,
-      [startLat, startLng],
-      [goalLat, goalLng],
-    ];
-    const bounds = L.latLngBounds(allPoints);
-    map.fitBounds(bounds, { padding: [24, 24] });
+    const goalEl = document.createElement("div");
+    goalEl.innerHTML = '<div style="width:12px;height:12px;background:#E85D4A;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>';
+    new mapboxgl.Marker({ element: goalEl }).setLngLat([goalLng, goalLat]).addTo(map);
 
     mapRef.current = map;
 

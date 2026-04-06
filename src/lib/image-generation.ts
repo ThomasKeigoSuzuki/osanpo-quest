@@ -14,61 +14,71 @@ export async function generateItemImage(
 ): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
+    console.warn("[generateItemImage] OPENAI_API_KEY not set, skipping");
     return null;
   }
 
   const prompt = `${BASE_STYLE} The item is: ${imagePromptHint}`;
+  console.log(`[generateItemImage] Generating for item ${itemId}...`);
 
-  // OpenAI GPT Image API 呼び出し
-  const response = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-image-1-mini",
-      prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "low",
-    }),
-  });
-
-  if (!response.ok) {
-    console.error("Image generation failed:", await response.text());
-    return null;
-  }
-
-  const data = await response.json();
-  const b64 = data.data?.[0]?.b64_json;
-  if (!b64) return null;
-
-  // base64 → Buffer
-  const imageBuffer = Buffer.from(b64, "base64");
-
-  // Supabase Storageにアップロード
-  const serviceClient = await createServiceClient();
-  const filePath = `items/${itemId}.png`;
-
-  const { error: uploadError } = await serviceClient.storage
-    .from("item-images")
-    .upload(filePath, imageBuffer, {
-      contentType: "image/png",
-      upsert: true,
+  try {
+    const response = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-image-1",
+        prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "low",
+        output_format: "b64_json",
+      }),
     });
 
-  if (uploadError) {
-    console.error("Image upload failed:", uploadError);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[generateItemImage] OpenAI API error (${response.status}):`, errorText);
+      return null;
+    }
+
+    const data = await response.json();
+    const b64 = data.data?.[0]?.b64_json;
+    if (!b64) {
+      console.error("[generateItemImage] No b64_json in response:", JSON.stringify(data).slice(0, 300));
+      return null;
+    }
+
+    console.log(`[generateItemImage] Image generated, uploading to Storage...`);
+    const imageBuffer = Buffer.from(b64, "base64");
+
+    const serviceClient = await createServiceClient();
+    const filePath = `items/${itemId}.png`;
+
+    const { error: uploadError } = await serviceClient.storage
+      .from("item-images")
+      .upload(filePath, imageBuffer, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("[generateItemImage] Storage upload failed:", uploadError);
+      return null;
+    }
+
+    const {
+      data: { publicUrl },
+    } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
+
+    console.log(`[generateItemImage] Upload complete: ${publicUrl}`);
+    return publicUrl;
+  } catch (err) {
+    console.error("[generateItemImage] Unexpected error:", err);
     return null;
   }
-
-  // 公開URLを取得
-  const {
-    data: { publicUrl },
-  } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
-
-  return publicUrl;
 }
 
 /**
@@ -85,60 +95,64 @@ export async function generateGodImage(
   }
 
   const prompt = `Anime-style character portrait of a Japanese local deity. ${appearance}. Soft watercolor background. Modern anime gacha game illustration style like Mahjong Soul. Upper body portrait, high quality.`;
+  console.log(`[generateGodImage] Generating for god ${godId}...`);
 
-  console.log(`[generateGodImage] Calling OpenAI for god ${godId}...`);
-
-  const response = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-image-1",
-      prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "medium",
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`[generateGodImage] OpenAI API error (${response.status}):`, errorText);
-    return null;
-  }
-
-  const data = await response.json();
-  const b64 = data.data?.[0]?.b64_json;
-  if (!b64) {
-    console.error("[generateGodImage] No b64_json in response:", JSON.stringify(data).slice(0, 200));
-    return null;
-  }
-
-  console.log(`[generateGodImage] Image generated, uploading to Storage...`);
-
-  const imageBuffer = Buffer.from(b64, "base64");
-
-  const serviceClient = await createServiceClient();
-  const filePath = `gods/${godId}.png`;
-
-  const { error: uploadError } = await serviceClient.storage
-    .from("item-images")
-    .upload(filePath, imageBuffer, {
-      contentType: "image/png",
-      upsert: true,
+  try {
+    const response = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-image-1",
+        prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "medium",
+        output_format: "b64_json",
+      }),
     });
 
-  if (uploadError) {
-    console.error("[generateGodImage] Storage upload failed:", uploadError);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[generateGodImage] OpenAI API error (${response.status}):`, errorText);
+      return null;
+    }
+
+    const data = await response.json();
+    const b64 = data.data?.[0]?.b64_json;
+    if (!b64) {
+      console.error("[generateGodImage] No b64_json in response:", JSON.stringify(data).slice(0, 300));
+      return null;
+    }
+
+    console.log(`[generateGodImage] Image generated, uploading to Storage...`);
+    const imageBuffer = Buffer.from(b64, "base64");
+
+    const serviceClient = await createServiceClient();
+    const filePath = `gods/${godId}.png`;
+
+    const { error: uploadError } = await serviceClient.storage
+      .from("item-images")
+      .upload(filePath, imageBuffer, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("[generateGodImage] Storage upload failed:", uploadError);
+      return null;
+    }
+
+    const {
+      data: { publicUrl },
+    } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
+
+    console.log(`[generateGodImage] Upload complete: ${publicUrl}`);
+    return publicUrl;
+  } catch (err) {
+    console.error("[generateGodImage] Unexpected error:", err);
     return null;
   }
-
-  const {
-    data: { publicUrl },
-  } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
-
-  console.log(`[generateGodImage] Upload complete: ${publicUrl}`);
-  return publicUrl;
 }

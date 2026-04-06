@@ -43,7 +43,7 @@ export function MiniMap({
       container: containerRef.current,
       style: "mapbox://styles/mapbox/outdoors-v12",
       center: [lng, lat],
-      zoom: 18,
+      zoom: 17,
       interactive: false,
       attributionControl: false,
     });
@@ -131,7 +131,7 @@ export function MiniMap({
     const marker = markerRef.current;
     if (!map || !marker) return;
 
-    map.easeTo({ center: [lng, lat], zoom: 18, duration: 500 });
+    map.easeTo({ center: [lng, lat], zoom: 17, duration: 500 });
     marker.setLngLat([lng, lat]);
 
     // パルスリング管理
