@@ -73,25 +73,28 @@ export function SettingsForm() {
   const nameChanged = displayName.trim() !== originalName && displayName.trim() !== "";
 
   return (
-    <div className="px-4 pt-8">
+    <div className="px-4 pt-8 pb-4">
       <h1 className="font-wafuu text-xl font-bold text-[#6B8E7B]">設定</h1>
 
       <div className="mt-8 space-y-4">
         {/* 表示名 */}
         <div className="rounded-xl bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-medium text-[#8B7E6A]">表示名</h2>
+          <label htmlFor="display-name" className="block text-sm font-medium text-[#8B7E6A]">
+            表示名
+          </label>
           <div className="mt-3 flex gap-2">
             <input
+              id="display-name"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={20}
-              className="flex-1 rounded-lg border border-[#D4C5B0] bg-[#FFF8F0] px-3 py-2 text-sm text-[#5A5A5A] outline-none focus:border-[#6B8E7B] focus:ring-1 focus:ring-[#6B8E7B]"
+              className="min-h-[44px] flex-1 rounded-xl border border-[#D4C5B0] bg-[#FFF8F0] px-4 py-3 text-sm text-[#5A5A5A] outline-none focus:border-[#6B8E7B] focus:ring-1 focus:ring-[#6B8E7B]"
             />
             <button
               onClick={handleSaveName}
               disabled={!nameChanged || saving}
-              className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition ${
+              className={`min-h-[44px] shrink-0 rounded-xl px-5 py-3 text-sm font-medium transition ${
                 nameChanged
                   ? "bg-[#6B8E7B] text-white hover:bg-[#5A7D6A]"
                   : "bg-[#E8DFD0] text-[#B0A898] cursor-not-allowed"
@@ -100,6 +103,9 @@ export function SettingsForm() {
               {saving ? "保存中..." : saved ? "保存済み" : "保存"}
             </button>
           </div>
+          <p className="mt-1.5 text-right text-[11px] text-[#B0A898]">
+            {displayName.length}/20
+          </p>
         </div>
 
         {/* アカウント */}
@@ -110,7 +116,7 @@ export function SettingsForm() {
           )}
           <button
             onClick={handleLogout}
-            className="mt-3 w-full rounded-lg border border-[#D4C5B0] px-4 py-2 text-sm text-[#8B7E6A] transition hover:bg-[#FFF8F0]"
+            className="mt-3 min-h-[44px] w-full rounded-xl border border-[#D4C5B0] px-4 py-3 text-sm text-[#8B7E6A] transition hover:bg-[#FFF8F0]"
           >
             ログアウト
           </button>

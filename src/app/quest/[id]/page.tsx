@@ -280,6 +280,8 @@ export default function QuestProgressPage() {
             {/* ミッション吹き出し */}
             <button
               onClick={() => setMissionExpanded((v) => !v)}
+              aria-expanded={missionExpanded}
+              aria-label="ミッション内容の表示切替"
               className="mt-1.5 w-full text-left"
             >
               <div className="relative rounded-xl rounded-tl-sm bg-[#F5EDE0] px-3 py-2.5 shadow-sm">
@@ -340,12 +342,12 @@ export default function QuestProgressPage() {
       </div>
 
       {/* 下部: ボタン */}
-      <div className="px-4 pb-8">
-        {error && <p className="mb-3 text-center text-sm text-red-500">{error}</p>}
+      <div className="px-4 pb-8 safe-bottom">
+        {error && <p className="mb-3 text-center text-sm text-red-500" role="alert">{error}</p>}
         <button
           onClick={handleComplete}
           disabled={!isInRange || completing}
-          className={`w-full rounded-2xl px-8 py-4 text-center text-lg font-bold shadow-lg transition active:scale-[0.98] ${
+          className={`min-h-[48px] w-full rounded-2xl px-8 py-4 text-center text-lg font-bold shadow-lg transition active:scale-[0.98] ${
             isInRange ? "bg-[#6B8E7B] text-white hover:bg-[#5A7D6A]" : "cursor-not-allowed bg-[#D4C5B0] text-white/70"
           }`}
         >
@@ -354,7 +356,7 @@ export default function QuestProgressPage() {
         <button
           onClick={handleAbandon}
           disabled={abandoning}
-          className="mt-2 w-full py-1 text-center text-[10px] text-[#C4B59E] transition hover:text-[#8B7E6A]"
+          className="mt-2 min-h-[44px] w-full py-2 text-center text-xs text-[#C4B59E] transition hover:text-[#8B7E6A]"
         >
           {abandoning ? "放棄中..." : "放棄する"}
         </button>

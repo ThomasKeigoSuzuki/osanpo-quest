@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { getDistanceMeters } from "@/lib/geo";
@@ -44,6 +44,15 @@ function formatDist(m: number): string {
 
 export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
   const [selected, setSelected] = useState<AdventureLog | null>(null);
+
+  // Escキーでモーダルを閉じる
+  const handleClose = useCallback(() => setSelected(null), []);
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selected, handleClose]);
 
   // 各ログに距離を付与
   const logsWithDist = useMemo(
@@ -153,7 +162,7 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
           onClick={() => setSelected(null)}
         >
           <div
-            className="max-h-[90dvh] w-full max-w-md animate-[fadeInUp_0.3s_ease-out] overflow-y-auto rounded-t-3xl bg-[#FFF8F0] p-6 pb-10"
+            className="max-h-[90dvh] w-full max-w-md animate-[fadeInUp_0.3s_ease-out] overflow-y-auto rounded-t-3xl bg-[#FFF8F0] p-6 safe-bottom"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#D4C5B0]" />

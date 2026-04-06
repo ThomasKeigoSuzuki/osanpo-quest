@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import type { Database } from "@/types/database";
 
 type Item = Database["public"]["Tables"]["items"]["Row"];
@@ -8,6 +8,15 @@ type Item = Database["public"]["Tables"]["items"]["Row"];
 export function CollectionView({ items }: { items: Item[] }) {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+
+  // Escキーでモーダルを閉じる
+  const handleClose = useCallback(() => setSelectedItem(null), []);
+  useEffect(() => {
+    if (!selectedItem) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selectedItem, handleClose]);
 
   // エリア別にグルーピング
   const tabs = useMemo(() => {
@@ -68,9 +77,9 @@ export function CollectionView({ items }: { items: Item[] }) {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${
                   activeTab === tab.key
-                    ? "bg-[#6B8E7B] text-white"
+                    ? "bg-[#6B8E7B] text-white shadow-sm"
                     : "bg-white text-[#8B7E6A] shadow-sm"
                 }`}
               >
@@ -102,7 +111,7 @@ export function CollectionView({ items }: { items: Item[] }) {
                         <span className="text-3xl">✨</span>
                       </div>
                     )}
-                    <p className="mt-1.5 w-full truncate text-center text-[10px] font-medium text-[#5A5A5A]">
+                    <p className="mt-1.5 w-full truncate text-center text-xs font-medium text-[#5A5A5A]">
                       {item.name}
                     </p>
                     <div className="mt-0.5 flex">
@@ -129,7 +138,7 @@ export function CollectionView({ items }: { items: Item[] }) {
           onClick={() => setSelectedItem(null)}
         >
           <div
-            className="w-full max-w-md animate-[fadeInUp_0.3s_ease-out] rounded-t-3xl bg-[#FFF8F0] p-6 pb-10"
+            className="w-full max-w-md animate-[fadeInUp_0.3s_ease-out] rounded-t-3xl bg-[#FFF8F0] p-6 safe-bottom"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ハンドル */}
