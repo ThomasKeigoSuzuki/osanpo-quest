@@ -7,6 +7,7 @@ import { getBondLevel } from "@/lib/bond-system";
 import { getRank } from "@/lib/rank-system";
 import { getShinakoDialogue } from "@/lib/shinako-dialogue";
 import { MisuOverlay } from "@/components/misu-overlay";
+import { HomeOfferingButton } from "@/components/home-offering";
 
 const SHINAKO_IMG = "/shinako-full.png";
 
@@ -100,32 +101,36 @@ export default async function HomePage() {
       </div>
 
       {/* ===== シナコ + 御簾 (z-10) ===== */}
-      <Link
-        href="/bonds"
-        className="absolute left-1/2 z-10 -translate-x-1/2 transition active:scale-[1.02]"
+      <div
+        className="absolute left-1/2 z-10 -translate-x-1/2"
         style={{ top: "3%", width: "85%", maxWidth: 380 }}
       >
-        <MisuOverlay
-          stage={shinakoRevealed ? 5 : 1}
-          characterSrc={SHINAKO_IMG}
-          characterAlt="シナコ"
-          type="shinako"
-        >
-          {shinakoBond && (
-            <span className="absolute left-0 top-0 z-20 rounded-br-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
-              💫 Lv.{shinakoBond.level} {shinakoBond.name}
-            </span>
-          )}
-        </MisuOverlay>
-        {/* ヒントテキスト */}
+        <Link href="/bonds" className="block transition active:scale-[1.02]">
+          <MisuOverlay
+            stage={shinakoRevealed ? 5 : 1}
+            characterSrc={SHINAKO_IMG}
+            characterAlt="シナコ"
+            type="shinako"
+          >
+            {shinakoBond && (
+              <span className="absolute left-0 top-0 z-20 rounded-br-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
+                💫 Lv.{shinakoBond.level} {shinakoBond.name}
+              </span>
+            )}
+          </MisuOverlay>
+        </Link>
         {!shinakoRevealed && (
-          <p className="mt-1 text-center text-[9px]" style={{ color: "var(--color-text-muted)" }}>
-            {(profile?.total_quests_completed ?? 0) === 0
-              ? "クエストをクリアしてシナコに会おう"
-              : "アイテムを奉納して御簾を上げよう"}
-          </p>
+          (profile?.total_quests_completed ?? 0) === 0 ? (
+            <p className="mt-1 text-center text-[9px]" style={{ color: "var(--color-text-muted)" }}>
+              クエストをクリアしてシナコに会おう
+            </p>
+          ) : (
+            <div className="mt-2">
+              <HomeOfferingButton />
+            </div>
+          )
         )}
-      </Link>
+      </div>
 
       {/* ===== セリフ (z-30) ===== */}
       <div className="absolute right-2 z-30" style={{ top: "12%" }}>
