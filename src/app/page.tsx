@@ -103,9 +103,9 @@ export default async function HomePage() {
       {/* ===== シナコ + 御簾 (z-10) ===== */}
       <div
         className="absolute left-1/2 z-10 -translate-x-1/2"
-        style={{ top: "1%", width: "92%", maxWidth: 400 }}
+        style={{ top: "5%", width: "92%", maxWidth: 400 }}
       >
-        <Link href="/bonds" className="block transition active:scale-[1.02]" style={{ height: "62dvh" }}>
+        <Link href="/bonds" className="block transition active:scale-[1.02]" style={{ height: "58dvh" }}>
           <MisuOverlay
             stage={shinakoRevealed ? 5 : 1}
             characterSrc={SHINAKO_IMG}
