@@ -82,9 +82,8 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
   const totalDistance = logsWithDist.reduce((s, l) => s + l.distance, 0);
 
   return (
-    <div className="px-4 pt-8 pb-4">
-      <h1 className="font-wafuu text-xl font-bold text-gold">冒険日記</h1>
-      <div className="mt-1 flex items-center gap-3 text-sm" style={{ color: "var(--color-text-sub)" }}>
+    <div className="pb-4">
+      <div className="mt-3 flex items-center gap-3 text-sm" style={{ color: "var(--color-text-sub)" }}>
         <span>{logs.length}件の冒険</span>
         {totalDistance > 0 && (
           <>
