@@ -9,6 +9,16 @@ type UserProfile = {
   total_quests_completed: number;
 };
 
+const DAILY_QUOTES = [
+  "新しい週の始まりだよ！今日はどこに行こうか？",
+  "火曜日は発見の日！面白いもの見つけに行こう",
+  "水の流れるように、気の向くままに歩こう",
+  "木々の声が聞こえるかな？自然を感じに行こう",
+  "金曜日！週末前の冒険、行ってみない？",
+  "休日だ！ゆっくり遠くまで歩いてみようよ",
+  "日曜日のんびり散歩、最高じゃない？",
+];
+
 export default async function HomePage() {
   const supabase = await createClient();
   const {
@@ -36,7 +46,6 @@ export default async function HomePage() {
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  // DB側でdistinctカウント（全件取得を避ける）
   const { data: areaData } = await supabase
     .from("quests")
     .select("start_area_name")
@@ -47,64 +56,78 @@ export default async function HomePage() {
     ? new Set(areaData.map((q) => q.start_area_name)).size
     : 0;
 
+  const dayOfWeek = new Date().getDay();
+  const quote = DAILY_QUOTES[dayOfWeek === 0 ? 6 : dayOfWeek - 1];
+
   return (
-    <div className="flex flex-col items-center px-4 pt-12">
-      <p className="text-sm text-[#B0A898]">
+    <div className="flex flex-col items-center px-4 pt-10 pb-4">
+      {/* タイトル */}
+      <p className="text-sm text-[var(--color-text-sub)]">
         {profile?.display_name ?? "ぼうけんしゃ"}の冒険
       </p>
-      <h1 className="font-wafuu mt-1 text-2xl font-bold text-[#6B8E7B]">
+      <h1 className="font-wafuu text-gold mt-1 text-3xl font-bold">
         おさんぽクエスト
       </h1>
 
-      <div className="mt-12">
+      {/* シナコのアバター */}
+      <div className="relative mt-10">
+        {/* 光るリング */}
+        <div className="absolute -inset-2 rounded-full animate-[glowRing_3s_ease-in-out_infinite] border-2 border-[var(--color-gold)] opacity-60" />
+        <div className="absolute -inset-4 rounded-full animate-[glowRing_3s_ease-in-out_infinite_0.5s] border border-[var(--color-gold)] opacity-30" />
         <img
           src="/shinako.png"
           alt="風を司る放浪の神様シナコ"
-          width={192}
-          height={192}
-          className="h-48 w-48 rounded-full border-4 border-[#E8DFD0] object-cover shadow-lg"
+          width={176}
+          height={176}
+          className="relative h-44 w-44 rounded-full border-2 border-[var(--color-gold)] object-cover shadow-[0_0_30px_rgba(232,184,73,0.2)]"
         />
       </div>
-      <p className="mt-4 text-center text-sm text-[#8B7E6A]">
-        {activeQuest
-          ? "冒険の途中だよ。続きに行こう！"
-          : <>放浪の神様「<span className="font-wafuu">シナコ</span>」が<br />あなたの冒険を待っています</>}
-      </p>
 
+      {/* シナコのセリフ */}
+      <div className="card-glass mt-6 w-full max-w-xs px-5 py-4">
+        <p className="text-center text-sm leading-relaxed text-[var(--color-text)]">
+          「{quote}」
+        </p>
+        <p className="mt-1 text-right text-xs text-[var(--color-gold)]">
+          — <span className="font-wafuu">シナコ</span>
+        </p>
+      </div>
+
+      {/* クエストボタン */}
       {activeQuest ? (
         <Link
           href={`/quest/${activeQuest.id}`}
-          className="mt-10 w-full max-w-xs rounded-2xl bg-[#D4A574] px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition hover:bg-[#C49464] active:scale-[0.98]"
+          className="btn-secondary mt-8 w-full max-w-xs text-center"
         >
           続きから
         </Link>
       ) : (
         <Link
           href="/quest/start"
-          className="mt-10 w-full max-w-xs rounded-2xl bg-[#6B8E7B] px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition hover:bg-[#5A7D6A] active:scale-[0.98]"
+          className="btn-primary mt-8 w-full max-w-xs text-center text-lg"
         >
           クエストを始める
         </Link>
       )}
 
-      <div className="mt-8 flex gap-8 text-center">
-        <div>
-          <p className="text-2xl font-bold text-[#6B8E7B]">
+      {/* 統計 */}
+      <div className="mt-8 flex w-full max-w-xs gap-3">
+        <div className="card-glass flex flex-1 flex-col items-center py-4">
+          <span className="text-lg">⚔️</span>
+          <p className="text-gold mt-1 text-xl font-bold">
             {profile?.total_quests_completed ?? 0}
           </p>
-          <p className="text-xs text-[#B0A898]">クリア済み</p>
+          <p className="text-[10px] text-[var(--color-text-sub)]">クリア</p>
         </div>
-        <div>
-          <p className="text-2xl font-bold text-[#6B8E7B]">
-            {itemCount ?? 0}
-          </p>
-          <p className="text-xs text-[#B0A898]">コレクション</p>
+        <div className="card-glass flex flex-1 flex-col items-center py-4">
+          <span className="text-lg">💎</span>
+          <p className="text-gold mt-1 text-xl font-bold">{itemCount ?? 0}</p>
+          <p className="text-[10px] text-[var(--color-text-sub)]">コレクション</p>
         </div>
-        <div>
-          <p className="text-2xl font-bold text-[#6B8E7B]">
-            {areaCount}
-          </p>
-          <p className="text-xs text-[#B0A898]">エリア</p>
+        <div className="card-glass flex flex-1 flex-col items-center py-4">
+          <span className="text-lg">🗺️</span>
+          <p className="text-gold mt-1 text-xl font-bold">{areaCount}</p>
+          <p className="text-[10px] text-[var(--color-text-sub)]">エリア</p>
         </div>
       </div>
     </div>
