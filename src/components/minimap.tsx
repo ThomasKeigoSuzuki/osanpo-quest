@@ -182,29 +182,33 @@ export function MiniMap({
   }
 
   return (
-    <div className="w-full px-4">
-      <div className="relative overflow-hidden rounded-2xl border-2 border-[#C4B59E] bg-[#F5EDE0] shadow-[0_4px_16px_rgba(139,126,106,0.25),inset_0_1px_0_rgba(255,255,255,0.5)]">
-        <div className="h-1.5 bg-gradient-to-r from-[#D4C5B0] via-[#E8DFD0] to-[#D4C5B0]" />
+    <div className="w-full px-3">
+      <div className="relative overflow-hidden rounded-2xl border border-[rgba(232,184,73,0.3)] shadow-[0_4px_24px_rgba(0,0,0,0.4),inset_0_0_20px_rgba(232,184,73,0.05)]">
+        {/* ゴールドのトップライン */}
+        <div className="h-px bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent opacity-50" />
         <div
           ref={containerRef}
-          className="h-[300px] w-full"
-          style={{
-            background: "#F5EDE0",
-            filter: "sepia(0.15) saturate(0.9) brightness(1.02)",
-          }}
+          className="h-[280px] w-full"
+          style={{ background: "#16213e" }}
         />
-        <div className="h-1.5 bg-gradient-to-r from-[#D4C5B0] via-[#E8DFD0] to-[#D4C5B0]" />
+        <div className="h-px bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent opacity-30" />
+
+        {/* 四隅の光ドット */}
+        <div className="pointer-events-none absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
+        <div className="pointer-events-none absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
+        <div className="pointer-events-none absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
+        <div className="pointer-events-none absolute bottom-2 right-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
 
         {/* 距離オーバーレイバッジ */}
         <div className="pointer-events-none absolute bottom-4 left-0 right-0 flex justify-center">
           <div
-            className={`rounded-full px-5 py-2 shadow-md backdrop-blur-sm ${
+            className={`rounded-full px-5 py-2 shadow-lg backdrop-blur-md ${
               isInRange
-                ? "bg-[#6B8E7B]/95 text-white"
-                : "bg-white/90 text-[#5A5A5A] border border-[#E8DFD0]"
+                ? "bg-[var(--color-success)]/90 text-white"
+                : "bg-[rgba(26,26,46,0.85)] text-[var(--color-text)] border border-[var(--color-border)]"
             }`}
           >
-            <span className="text-sm font-bold">
+            <span className={`text-sm font-bold ${!isInRange && distance !== null ? "text-gold" : ""}`}>
               {isInRange
                 ? "ゴール圏内！"
                 : distance !== null
