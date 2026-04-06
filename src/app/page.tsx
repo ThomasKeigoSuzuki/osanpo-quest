@@ -9,11 +9,7 @@ import { getShinakoDialogue } from "@/lib/shinako-dialogue";
 
 const SHINAKO_IMG = "/shinako-full.png";
 
-type UserProfile = {
-  display_name: string;
-  total_quests_completed: number;
-  login_streak: number;
-};
+type UserProfile = { display_name: string; total_quests_completed: number; login_streak: number };
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -41,11 +37,7 @@ export default async function HomePage() {
     const { data: daily } = await supabase.from("daily_quests").select("completed").eq("user_id", user.id).eq("quest_date", today).single();
     dailyCompleted = daily?.completed ?? false;
     const { data: bond } = await supabase.from("god_bonds").select("bond_exp").eq("user_id", user.id).eq("god_name", "シナコ").single();
-    if (bond) {
-      const bl = getBondLevel(bond.bond_exp);
-      shinakoBondLevel = bl.level;
-      if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name };
-    }
+    if (bond) { const bl = getBondLevel(bond.bond_exp); shinakoBondLevel = bl.level; if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name }; }
     const { data: rp } = await supabase.from("users").select("rank_points").eq("id", user.id).single();
     if (rp) rankInfo = getRank(rp.rank_points);
   }
@@ -60,130 +52,115 @@ export default async function HomePage() {
   return (
     <div className="relative h-[calc(100dvh-64px)] w-full overflow-hidden" style={{ maxWidth: 448, margin: "0 auto" }}>
 
-      {/* 上部バー (z-20) */}
-      <div className="absolute left-0 right-0 top-0 z-20 flex items-start justify-between px-3" style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 12px)" }}>
-        <Link href="/settings" className="card-glass flex items-center gap-1.5 px-2.5 py-1.5">
-          <span className="text-sm">{rankInfo.icon}</span>
-          <span className="font-wafuu text-[10px] font-bold" style={{ color: rankInfo.color }}>{rankInfo.name}</span>
-        </Link>
-        <div className="card-glass flex items-center gap-2 px-2.5 py-1.5 text-[10px]" style={{ color: "var(--color-text-sub)" }}>
-          <span>⚔️{profile?.total_quests_completed ?? 0}</span>
-          <span>💎{itemCount}</span>
-          <span>🗺️{areaCount}</span>
+      {/* 背景画像 */}
+      <img
+        src="/bg-shrine.png"
+        alt=""
+        className="absolute inset-0 z-0 h-full w-full object-cover"
+        style={{ filter: "brightness(0.4) saturate(0.8)" }}
+      />
+      {/* 下部グラデーションフェード */}
+      <div className="absolute inset-x-0 bottom-0 z-[1] h-[45%]" style={{ background: "linear-gradient(to bottom, transparent, rgba(26,26,46,0.95) 70%)" }} />
+
+      {/* ===== 上部バー (z-20) ===== */}
+      <div className="absolute left-0 right-0 top-0 z-20 px-3" style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 8px)" }}>
+        {/* ランク行 */}
+        <div className="flex items-center justify-between">
+          <Link href="/settings" className="flex items-center gap-1.5 rounded-lg px-2 py-1" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}>
+            <span className="text-base">{rankInfo.icon}</span>
+            <div>
+              <p className="font-wafuu text-[10px] font-bold" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
+              {!rankInfo.isMax && (
+                <div className="mt-0.5 h-1 w-16 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.15)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${rankInfo.progress * 100}%`, background: rankInfo.color }} />
+                </div>
+              )}
+            </div>
+          </Link>
+
+          {/* 統計 */}
+          <div className="flex items-center gap-3 rounded-lg px-3 py-1.5 text-xs font-bold" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}>
+            <span style={{ color: "var(--color-gold)" }}>⚔️ {profile?.total_quests_completed ?? 0}</span>
+            <span style={{ color: "var(--color-teal)" }}>💎 {itemCount}</span>
+            <span style={{ color: "var(--color-accent)" }}>🗺️ {areaCount}</span>
+          </div>
         </div>
+
+        {/* ストリーク */}
+        {streak > 0 && (
+          <div className="mt-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.5)", color: "var(--color-accent)" }}>
+            🔥 {streak}日連続
+          </div>
+        )}
       </div>
 
-      {/* 背景グロー (z-0) */}
-      <div
-        className="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2"
-        style={{
-          width: 420, height: 420,
-          background: "radial-gradient(circle, rgba(232,184,73,0.1) 0%, rgba(78,205,196,0.05) 40%, transparent 70%)",
-          pointerEvents: "none",
-          animation: "windGlow 4s ease-in-out infinite",
-        }}
-      />
-
-      {/* シナコ (z-10) */}
+      {/* ===== シナコ (z-10, 大きく表示) ===== */}
       <Link
         href="/bonds"
         className="absolute left-1/2 z-10 -translate-x-1/2 transition active:scale-[1.02]"
-        style={{ top: "8%", width: 300 }}
+        style={{ top: "3%", width: "85%", maxWidth: 380 }}
       >
         <img
           src={SHINAKO_IMG}
           alt="シナコ"
-          className="w-full object-contain"
-          style={{ maxHeight: "55dvh", animation: "hairSway 6s ease-in-out infinite" }}
+          className="w-full object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
+          style={{ maxHeight: "65dvh", animation: "hairSway 6s ease-in-out infinite" }}
         />
-        {/* 絆バッジ */}
         {shinakoBond && (
-          <span className="card-glass absolute -left-1 top-2 px-2 py-0.5 text-[9px] font-bold" style={{ color: "var(--color-gold)" }}>
+          <span className="absolute left-0 top-0 rounded-br-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
             💫 Lv.{shinakoBond.level} {shinakoBond.name}
           </span>
         )}
         {/* 風の光粒 */}
-        {[30, 45, 60, 75].map((left, i) => (
-          <div
-            key={i}
-            className="absolute h-1.5 w-1.5 rounded-full bg-white"
-            style={{
-              bottom: "5%",
-              left: `${left}%`,
-              opacity: 0,
-              animation: `windParticle 3s ease-in-out infinite ${i * 1.5}s`,
-            }}
-          />
+        {[25, 42, 58, 75].map((left, i) => (
+          <div key={i} className="absolute h-1.5 w-1.5 rounded-full bg-white" style={{ bottom: "8%", left: `${left}%`, opacity: 0, animation: `windParticle 3s ease-in-out infinite ${i * 1.2}s` }} />
         ))}
       </Link>
 
-      {/* セリフ吹き出し (z-30) */}
-      <div className="absolute right-3 z-30" style={{ top: "15%" }}>
-        <div className="card-glass relative px-3 py-2" style={{ maxWidth: 170 }}>
-          <p className="text-xs leading-relaxed text-[var(--color-text)] line-clamp-3">「{quote}」</p>
-          <div className="absolute -bottom-2 left-4" style={{ width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "8px solid rgba(255,255,255,0.08)" }} />
+      {/* ===== セリフ (z-30) ===== */}
+      <div className="absolute right-2 z-30" style={{ top: "12%" }}>
+        <div className="relative rounded-xl px-3 py-2" style={{ maxWidth: 180, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(12px)", border: "1px solid rgba(232,184,73,0.2)" }}>
+          <p className="text-[11px] leading-relaxed text-white line-clamp-3">「{quote}」</p>
+          <div className="absolute -bottom-1.5 left-5" style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "6px solid rgba(0,0,0,0.65)" }} />
         </div>
       </div>
 
-      {/* デイリーカード (z-20) */}
-      <Link href="/quest/start?daily=true" className="absolute left-3 z-20" style={{ top: "38%", width: 130 }}>
-        <div className="card-glass p-2.5">
-          <p className="text-[10px] font-bold text-gold">📅 今日</p>
-          <p className="font-wafuu mt-0.5 truncate text-xs text-[var(--color-text)]">{dailyConfig.name}</p>
-          {mainBonus && (
-            <span className="mt-1 inline-block rounded-full px-1.5 py-0.5 text-[8px]" style={{ background: "rgba(232,184,73,0.15)", color: "var(--color-gold)" }}>{mainBonus}</span>
-          )}
+      {/* ===== デイリーカード (z-20, 左上下) ===== */}
+      <Link href="/quest/start?daily=true" className="absolute left-2 z-20" style={{ top: "40%" }}>
+        <div className="rounded-xl p-2.5" style={{ width: 120, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)", border: "1px solid rgba(232,184,73,0.2)" }}>
+          <p className="text-[9px] font-bold" style={{ color: "var(--color-gold)" }}>📅 今日のクエスト</p>
+          <p className="font-wafuu mt-0.5 truncate text-[11px] text-white">{dailyConfig.name}</p>
+          {mainBonus && <span className="mt-1 inline-block rounded-full px-1.5 py-0.5 text-[8px]" style={{ background: "rgba(232,184,73,0.2)", color: "var(--color-gold)" }}>{mainBonus}</span>}
           <div className="mt-1.5">
-            {dailyCompleted ? (
-              <span className="text-[10px] text-[var(--color-success)]">✅ 完了！</span>
-            ) : !activeQuest ? (
-              <span className="btn-primary inline-block !px-3 !py-1 text-[10px]">GO →</span>
-            ) : null}
+            {dailyCompleted ? <span className="text-[10px] text-[var(--color-success)]">✅ 完了</span> : !activeQuest ? <span className="inline-block rounded-md px-3 py-1 text-[10px] font-bold text-white" style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))" }}>GO →</span> : null}
           </div>
         </div>
       </Link>
 
-      {/* ストリーク (z-20) */}
-      {streak > 0 && (
-        <div className="card-glass absolute right-3 z-20 px-2.5 py-1.5" style={{ top: "48%" }}>
-          <span className="text-[10px] font-bold text-[var(--color-accent)]">🔥 {streak}日</span>
-        </div>
-      )}
-
-      {/* ランクプログレス (z-20) */}
-      {!rankInfo.isMax && (
-        <div className="absolute left-4 right-4 z-20" style={{ bottom: 148 }}>
-          <div className="flex items-center justify-between">
-            <span className="text-xs">{rankInfo.icon}</span>
-            <span className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>{rankInfo.currentPoints}/{rankInfo.nextRankPoints} pts</span>
-          </div>
-          <div className="mt-0.5 h-[2px] overflow-hidden rounded-full" style={{ background: "var(--color-card)" }}>
-            <div className="h-full rounded-full" style={{ width: `${rankInfo.progress * 100}%`, background: `linear-gradient(90deg, ${rankInfo.color}80, ${rankInfo.color})` }} />
-          </div>
-        </div>
-      )}
-
-      {/* アクションボタン (z-20) */}
-      <div className="absolute bottom-[80px] left-0 right-0 z-20 flex gap-2 px-4">
-        {activeQuest ? (
-          <Link href={`/quest/${activeQuest.id}`} className="card-glass flex flex-1 flex-col items-center py-3 transition active:scale-[0.97]">
-            <span className="text-lg">⚔️</span>
-            <span className="text-[10px] text-[var(--color-text)]">続きから</span>
+      {/* ===== 下部アクションエリア (z-20) ===== */}
+      <div className="absolute bottom-3 left-0 right-0 z-20 px-3 safe-bottom">
+        {/* アクションボタン（ウマ娘風の大きなカラフルボタン） */}
+        <div className="flex gap-2">
+          {activeQuest ? (
+            <Link href={`/quest/${activeQuest.id}`} className="flex flex-1 flex-col items-center rounded-2xl py-3 transition active:scale-[0.95]" style={{ background: "linear-gradient(135deg, #e76f51, #f4a261)", boxShadow: "0 4px 16px rgba(231,111,81,0.4)" }}>
+              <span className="text-xl">⚔️</span>
+              <span className="mt-0.5 text-[11px] font-bold text-white">続きから</span>
+            </Link>
+          ) : (
+            <Link href="/quest/start" className="flex flex-1 flex-col items-center rounded-2xl py-3 transition active:scale-[0.95]" style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold-light))", boxShadow: "0 4px 16px rgba(232,184,73,0.4)" }}>
+              <span className="text-xl">🗡️</span>
+              <span className="mt-0.5 text-[11px] font-bold" style={{ color: "var(--color-bg-primary)" }}>クエスト</span>
+            </Link>
+          )}
+          <Link href="/catalog" className="flex flex-1 flex-col items-center rounded-2xl py-3 transition active:scale-[0.95]" style={{ background: "linear-gradient(135deg, #2ec4b6, #4ecdc4)", boxShadow: "0 4px 16px rgba(78,205,196,0.3)" }}>
+            <span className="text-xl">📖</span>
+            <span className="mt-0.5 text-[11px] font-bold text-white">図鑑</span>
           </Link>
-        ) : (
-          <Link href="/quest/start" className="card-glass flex flex-1 flex-col items-center py-3 transition active:scale-[0.97]">
-            <span className="text-lg">🗡️</span>
-            <span className="text-[10px] text-[var(--color-text)]">クエスト</span>
+          <Link href="/bonds" className="flex flex-1 flex-col items-center rounded-2xl py-3 transition active:scale-[0.95]" style={{ background: "linear-gradient(135deg, #9b59b6, #c39bd3)", boxShadow: "0 4px 16px rgba(155,89,182,0.3)" }}>
+            <span className="text-xl">💫</span>
+            <span className="mt-0.5 text-[11px] font-bold text-white">絆</span>
           </Link>
-        )}
-        <Link href="/catalog" className="card-glass flex flex-1 flex-col items-center py-3 transition active:scale-[0.97]">
-          <span className="text-lg">📖</span>
-          <span className="text-[10px] text-[var(--color-text)]">図鑑</span>
-        </Link>
-        <Link href="/bonds" className="card-glass flex flex-1 flex-col items-center py-3 transition active:scale-[0.97]">
-          <span className="text-lg">💫</span>
-          <span className="text-[10px] text-[var(--color-text)]">絆</span>
-        </Link>
+        </div>
       </div>
     </div>
   );
