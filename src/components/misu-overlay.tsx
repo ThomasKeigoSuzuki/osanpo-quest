@@ -50,10 +50,10 @@ export function MisuOverlay({
       <img
         src={characterSrc}
         alt={characterAlt}
-        className="w-full object-contain"
+        className="h-full w-full object-cover"
         style={{
           filter: charFilter,
-          maxHeight: "65dvh",
+          objectPosition: "center 15%",
           animation: type === "shinako" ? "hairSway 6s ease-in-out infinite" : undefined,
           transition: "filter 1s ease",
         }}
