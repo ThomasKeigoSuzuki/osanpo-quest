@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { Zen_Maru_Gothic } from "next/font/google";
 import { BottomNavigation } from "@/components/navigation";
 import { ServiceWorkerRegister } from "@/components/sw-register";
+import { AuthProvider } from "@/components/auth-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,9 +51,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="flex min-h-dvh flex-col bg-fantasy">
-        <main className="flex-1 pb-16">{children}</main>
-        <BottomNavigation />
-        <ServiceWorkerRegister />
+        <AuthProvider>
+          <main className="flex-1 pb-16">{children}</main>
+          <BottomNavigation />
+          <ServiceWorkerRegister />
+        </AuthProvider>
       </body>
     </html>
   );

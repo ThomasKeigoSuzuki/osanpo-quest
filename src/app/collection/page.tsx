@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import { CollectionView } from "./collection-view";
@@ -13,7 +12,7 @@ export default async function CollectionPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) return <CollectionView items={[]} />;
 
   const { data: items } = await supabase
     .from("items")
