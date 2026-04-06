@@ -118,7 +118,8 @@ export type Database = {
           quest_id: string;
           name: string;
           description: string;
-          category: "material" | "local" | "crafted" | "treasure";
+          category: string;
+          sub_category: string | null;
           image_url: string | null;
           area_name: string | null;
           god_name: string;
@@ -131,7 +132,8 @@ export type Database = {
           quest_id: string;
           name: string;
           description: string;
-          category: "material" | "local" | "crafted" | "treasure";
+          category: string;
+          sub_category?: string | null;
           image_url?: string | null;
           area_name?: string | null;
           god_name: string;

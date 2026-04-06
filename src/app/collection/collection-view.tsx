@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import Link from "next/link";
 import type { Database } from "@/types/database";
 
 type Item = Database["public"]["Tables"]["items"]["Row"];
@@ -50,7 +51,10 @@ export function CollectionView({ items }: { items: Item[] }) {
 
   return (
     <div className="px-4 pt-8 pb-4">
-      <h1 className="font-wafuu text-xl font-bold text-gold">コレクション</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-wafuu text-xl font-bold text-gold">コレクション</h1>
+        <Link href="/catalog" className="text-xs text-[var(--color-teal)] hover:underline">図鑑を見る →</Link>
+      </div>
       <p className="mt-1 text-sm" style={{ color: "var(--color-text-sub)" }}>
         集めたアイテム: {items.length}個
       </p>

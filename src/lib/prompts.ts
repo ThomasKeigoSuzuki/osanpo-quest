@@ -154,23 +154,30 @@ export function buildItemGenerationPrompt(
 エリア: ${areaName}
 
 【アイテム生成ルール】
-- 放浪神（シナコ）の場合:
-  - カテゴリ: "material"（素材）
-  - テーマ: 風・空・旅・自然に関するもの
-  - 例: 「そよ風のかけら」「旅路の砂」「漂う雲の糸」「夕焼けの残り香」
-- ご当地神の場合:
-  - カテゴリ: "local"（ご当地品）
-  - テーマ: その土地の名所・文化・食・自然に関するもの
-  - 例: 「雷おこしの欠片」「潮騒の貝殻」「伏見の朱色」
 - 名前: 漢字＋ひらがなで4〜8文字、詩的に
 - 説明文: 1〜2文、五感（音・匂い・光・温度・手触り）に訴える表現を含める
 - レアリティ: 1〜5（通常1-2、難しいミッションほど高い）
+- category は以下の6種から最も合うものを1つ選ぶ:
+  - nature（自然の恵み）: 花・植物・石・水・風・生き物の痕跡
+  - food（味覚の記憶）: 和菓子・屋台の味・飲み物・匂い
+  - craft（職人の技）: 建築・看板・道具・布
+  - mystery（不思議なもの）: 光・音・時間・気配
+  - memory（風景の欠片）: 朝・昼・夕・夜の風景
+  - divine（神様の贈り物）: 神様由来の特別なもの
+- sub_category は category に対応する以下から1つ選ぶ:
+  - nature: flora / mineral / water / wind / creature
+  - food: wagashi / street / drink / scent
+  - craft: architecture / sign / tool / textile
+  - mystery: light / sound / time / presence
+  - memory: morning / noon / evening / night
+  - divine: shinako / local / crafted / seasonal
 
 【出力フォーマット（JSON）】
 {
   "name": "アイテム名",
   "description": "説明文",
-  "category": "material" | "local",
+  "category": "nature" | "food" | "craft" | "mystery" | "memory" | "divine",
+  "sub_category": "上記のsub_categoryから1つ",
   "rarity": 1-5,
   "image_prompt_hint": "画像生成に使うための、このアイテムの見た目の特徴を英語で1文"
 }

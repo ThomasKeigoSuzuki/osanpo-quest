@@ -12,7 +12,8 @@ import { isValidLatLng, isValidUUID } from "@/lib/validation";
 type ItemGeneration = {
   name: string;
   description: string;
-  category: "material" | "local";
+  category: string;
+  sub_category?: string;
   rarity: number;
   image_prompt_hint?: string;
 };
@@ -91,6 +92,7 @@ export async function POST(request: Request) {
       name: itemData.name,
       description: itemData.description,
       category: itemData.category,
+      sub_category: itemData.sub_category || null,
       area_name: quest.god_type === "local" ? quest.start_area_name : null,
       god_name: quest.god_name,
       rarity: Math.min(5, Math.max(1, itemData.rarity)),
