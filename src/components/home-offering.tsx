@@ -43,7 +43,7 @@ export function HomeOfferingButton() {
 
   if (done) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md">
         <div className="w-[280px] text-center">
           <div className="mx-auto h-[250px] w-[250px] overflow-hidden rounded-2xl" style={{ border: "2px solid var(--color-gold)", boxShadow: "0 0 40px rgba(232,184,73,0.3)" }}>
             <MisuOverlay stage={misuStage} characterSrc="/shinako-full.png" characterAlt="シナコ" type="shinako" />
@@ -70,11 +70,11 @@ export function HomeOfferingButton() {
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="card-glass max-h-[70dvh] w-full max-w-md animate-[fadeInUp_0.3s_ease-out] overflow-y-auto rounded-t-3xl p-5 safe-bottom" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md" onClick={() => setShowModal(false)}>
+          <div className="max-h-[75dvh] w-full max-w-md animate-[fadeInUp_0.3s_ease-out] overflow-y-auto rounded-t-3xl p-5 safe-bottom" style={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" }} onClick={(e) => e.stopPropagation()}>
             <div className="mx-auto mb-3 h-1 w-10 rounded-full" style={{ background: "var(--color-border)" }} />
-            <h2 className="font-wafuu text-center text-sm font-bold text-gold">シナコにアイテムを奉納</h2>
-            <p className="mt-1 text-center text-[10px]" style={{ color: "var(--color-text-sub)" }}>
+            <h2 className="font-wafuu text-center text-base font-bold text-gold">🎁 シナコにアイテムを奉納</h2>
+            <p className="mt-1 text-center text-xs" style={{ color: "var(--color-text-sub)" }}>
               アイテムを1つ選んで奉納すると御簾が上がります
             </p>
 
@@ -103,7 +103,7 @@ export function HomeOfferingButton() {
               </div>
             )}
 
-            <button onClick={() => setShowModal(false)} className="btn-ghost mt-4 w-full text-center text-xs" style={{ border: "1px solid var(--color-border)" }}>閉じる</button>
+            <button onClick={() => setShowModal(false)} className="mt-4 w-full rounded-xl py-3 text-center text-sm font-medium text-[var(--color-text)]" style={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }}>閉じる</button>
           </div>
         </div>
       )}
