@@ -36,6 +36,12 @@ function CompleteContent() {
     try { bondInfo = JSON.parse(bondStr); } catch {}
   }
 
+  const rankStr = searchParams.get("rank");
+  let rankInfo: { points_gained: number; total_points: number; rank: number; rank_name: string; rank_icon: string; ranked_up: boolean } | null = null;
+  if (rankStr) {
+    try { rankInfo = JSON.parse(rankStr); } catch {}
+  }
+
   const [stage, setStage] = useState(0);
   const [showFlash, setShowFlash] = useState(false);
 
@@ -157,6 +163,26 @@ function CompleteContent() {
               <p className="text-xs" style={{ color: "var(--color-text-sub)" }}>
                 💫 {bondInfo.god_name}との絆が深まった（Lv.{bondInfo.new_level} {bondInfo.level_name}）
               </p>
+            )}
+          </div>
+        )}
+
+        {/* ランク情報 */}
+        {rankInfo && stage >= 4 && (
+          <div className={`card-glass mt-3 w-full p-3 transition-all duration-500 ${stage >= 4 ? "opacity-100" : "opacity-0"}`}>
+            {rankInfo.ranked_up ? (
+              <div className="text-center">
+                <p className="text-2xl">{rankInfo.rank_icon}</p>
+                <p className="text-sm font-bold text-gold animate-[starGlow_1.5s_ease-in-out_infinite]">ランクが上がった！</p>
+                <p className="font-wafuu text-xs" style={{ color: "var(--color-text-sub)" }}>{rankInfo.rank_name}</p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-xs" style={{ color: "var(--color-text-sub)" }}>{rankInfo.rank_icon} {rankInfo.rank_name}</span>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "rgba(232,184,73,0.15)", color: "var(--color-gold)" }}>
+                  +{rankInfo.points_gained} RP
+                </span>
+              </div>
             )}
           </div>
         )}

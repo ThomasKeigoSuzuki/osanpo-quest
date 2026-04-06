@@ -12,6 +12,8 @@ export type Database = {
           last_login_date: string | null;
           longest_streak: number;
           active_title_id: string | null;
+          rank_points: number;
+          adventurer_rank: number;
         };
         Insert: {
           id: string;
@@ -22,6 +24,8 @@ export type Database = {
           login_streak?: number;
           last_login_date?: string;
           longest_streak?: number;
+          rank_points?: number;
+          adventurer_rank?: number;
         };
         Update: {
           id?: string;
@@ -31,6 +35,8 @@ export type Database = {
           login_streak?: number;
           last_login_date?: string;
           longest_streak?: number;
+          rank_points?: number;
+          adventurer_rank?: number;
         };
         Relationships: [];
       };

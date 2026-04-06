@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getDailyQuestConfig, getStreakBonus, getCategoryBonusLabel, getTodayDateString } from "@/lib/daily-quest";
 import { getBondLevel } from "@/lib/bond-system";
+import { getRank } from "@/lib/rank-system";
 
 type UserProfile = {
   display_name: string;
@@ -34,6 +35,7 @@ export default async function HomePage() {
   let areaCount = 0;
   let dailyCompleted = false;
   let shinakoBond: { level: number; name: string } | null = null;
+  let rankInfo = getRank(0);
 
   if (user) {
     const { data: p } = await supabase
@@ -86,6 +88,14 @@ export default async function HomePage() {
       const bl = getBondLevel(bond.bond_exp);
       if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name };
     }
+
+    // ランク
+    const { data: rp } = await supabase
+      .from("users")
+      .select("rank_points")
+      .eq("id", user.id)
+      .single();
+    if (rp) rankInfo = getRank(rp.rank_points);
   }
 
   const jstDay = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })).getDay();
@@ -200,8 +210,34 @@ export default async function HomePage() {
         </Link>
       )}
 
+      {/* ランクバー */}
+      <div className="card-glass mt-6 w-full max-w-xs p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{rankInfo.icon}</span>
+            <span className="font-wafuu text-sm font-bold" style={{ color: rankInfo.color }}>{rankInfo.name}</span>
+          </div>
+          {!rankInfo.isMax && (
+            <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+              {rankInfo.currentPoints}/{rankInfo.nextRankPoints} pts
+            </span>
+          )}
+        </div>
+        {!rankInfo.isMax && (
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ background: "var(--color-card)" }}>
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${rankInfo.progress * 100}%`,
+                background: `linear-gradient(90deg, ${rankInfo.color}80, ${rankInfo.color})`,
+              }}
+            />
+          </div>
+        )}
+      </div>
+
       {/* 統計 */}
-      <div className="mt-6 flex w-full max-w-xs gap-3">
+      <div className="mt-3 flex w-full max-w-xs gap-3">
         <div className="card-glass flex flex-1 flex-col items-center py-3">
           <span className="text-base">⚔️</span>
           <p className="text-gold mt-0.5 text-lg font-bold">{profile?.total_quests_completed ?? 0}</p>

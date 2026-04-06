@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { getRank } from "@/lib/rank-system";
 
 export function SettingsForm() {
   const supabase = useMemo(() => createClient(), []);
@@ -17,6 +18,7 @@ export function SettingsForm() {
   const [linkEmail, setLinkEmail] = useState("");
   const [linkSent, setLinkSent] = useState(false);
   const [linkError, setLinkError] = useState("");
+  const [rankData, setRankData] = useState<ReturnType<typeof getRank> | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -30,13 +32,14 @@ export function SettingsForm() {
 
       const { data } = await supabase
         .from("users")
-        .select("display_name")
+        .select("display_name, rank_points")
         .eq("id", user.id)
         .single();
 
       if (data) {
         setDisplayName(data.display_name);
         setOriginalName(data.display_name);
+        setRankData(getRank(data.rank_points));
       }
     }
     load();
@@ -107,6 +110,31 @@ export function SettingsForm() {
       <h1 className="font-wafuu text-xl font-bold text-gold">設定</h1>
 
       <div className="mt-8 space-y-4">
+        {/* 冒険者ランク */}
+        {rankData && (
+          <div className="card-glass p-4">
+            <h2 className="text-sm font-medium" style={{ color: "var(--color-text-sub)" }}>冒険者ランク</h2>
+            <div className="mt-2 flex items-center gap-3">
+              <span className="text-2xl">{rankData.icon}</span>
+              <div className="flex-1">
+                <p className="font-wafuu text-sm font-bold" style={{ color: rankData.color }}>{rankData.name}</p>
+                <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>累計 {rankData.totalPoints} pts</p>
+              </div>
+            </div>
+            {!rankData.isMax && (
+              <div className="mt-2">
+                <div className="flex justify-between text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                  <span>次のランクまで</span>
+                  <span>{rankData.currentPoints}/{rankData.nextRankPoints}</span>
+                </div>
+                <div className="mt-0.5 h-1.5 overflow-hidden rounded-full" style={{ background: "var(--color-card)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${rankData.progress * 100}%`, background: `linear-gradient(90deg, ${rankData.color}80, ${rankData.color})` }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 表示名 */}
         <div className="card-glass p-4">
           <label htmlFor="display-name" className="block text-sm font-medium" style={{ color: "var(--color-text-sub)" }}>

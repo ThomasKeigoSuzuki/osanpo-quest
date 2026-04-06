@@ -10,6 +10,7 @@ import { generateItemImage } from "@/lib/image-generation";
 import { isValidLatLng, isValidUUID } from "@/lib/validation";
 import { getStreakBonus } from "@/lib/daily-quest";
 import { getBondLevel } from "@/lib/bond-system";
+import { getRank, getPointsForAction } from "@/lib/rank-system";
 
 type ItemGeneration = {
   name: string;
@@ -227,6 +228,28 @@ export async function POST(request: Request) {
     bondLevelName = bl.name;
   }
 
+  // ランクポイント加算
+  let pointsGained = getPointsForAction("quest_clear");
+  if (dailyRecord) pointsGained += getPointsForAction("daily_clear") - getPointsForAction("quest_clear"); // dailyは3pt（差分で+1）
+  if (!existingBond) pointsGained += getPointsForAction("new_god");
+  if (bondLeveledUp) pointsGained += getPointsForAction("bond_level_up");
+
+  const { data: rankProfile } = await supabase
+    .from("users")
+    .select("rank_points, adventurer_rank")
+    .eq("id", user.id)
+    .single();
+
+  const oldRank = rankProfile?.adventurer_rank ?? 1;
+  const newTotalPoints = (rankProfile?.rank_points ?? 0) + pointsGained;
+  const newRankInfo = getRank(newTotalPoints);
+  const rankedUp = newRankInfo.rank > oldRank;
+
+  await supabase
+    .from("users")
+    .update({ rank_points: newTotalPoints, adventurer_rank: newRankInfo.rank })
+    .eq("id", user.id);
+
   const messagePrompt = buildCompletionMessagePrompt(
     quest.god_name,
     quest.god_type,
@@ -251,6 +274,14 @@ export async function POST(request: Request) {
       new_level: bondNewLevel,
       level_name: bondLevelName,
       leveled_up: bondLeveledUp,
+    },
+    rank_info: {
+      points_gained: pointsGained,
+      total_points: newTotalPoints,
+      rank: newRankInfo.rank,
+      rank_name: newRankInfo.name,
+      rank_icon: newRankInfo.icon,
+      ranked_up: rankedUp,
     },
   });
 }
