@@ -45,6 +45,53 @@ function CompleteContent() {
   const [stage, setStage] = useState(0);
   const [showFlash, setShowFlash] = useState(false);
 
+  // シェアカードURL生成
+  function getShareCardUrl(): string | null {
+    if (!item) return null;
+    const data = btoa(JSON.stringify({
+      item_name: item.name,
+      item_image_url: item.image_url,
+      item_rarity: item.rarity,
+      god_name: bondInfo?.god_name || "",
+      area_name: "",
+      category: item.category,
+    }));
+    return `/api/share-card?data=${encodeURIComponent(data)}`;
+  }
+
+  async function handleShare() {
+    if (!item) return;
+    const text = `おさんぽクエストで「${item.name}」を手に入れた！ #おさんぽクエスト`;
+    const url = "https://osanpo-quest.vercel.app";
+
+    // 画像付きシェアを試行
+    const cardUrl = getShareCardUrl();
+    if (navigator.share && cardUrl) {
+      try {
+        const res = await fetch(cardUrl);
+        const blob = await res.blob();
+        const file = new File([blob], "osanpo-quest.png", { type: "image/png" });
+
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ text, url, files: [file] });
+          return;
+        }
+      } catch {}
+
+      // ファイルシェア非対応ならテキストのみ
+      try {
+        await navigator.share({ text, url });
+        return;
+      } catch {}
+    }
+
+    // フォールバック: クリップボード
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      alert("クリップボードにコピーしました！");
+    } catch {}
+  }
+
   useEffect(() => {
     if (!item) return;
     const timers = [
@@ -187,18 +234,28 @@ function CompleteContent() {
           </div>
         )}
 
-        {/* ボタン */}
+        {/* シェアカードプレビュー + ボタン */}
         <div className={`mt-6 w-full space-y-3 transition-all duration-500 ${stage >= 5 ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}>
-          <button onClick={() => router.push("/collection")} className="btn-primary w-full text-center">コレクションを見る</button>
+          {/* シェアプレビューカード */}
           <button
-            onClick={async () => {
-              const text = `おさんぽクエストで「${item.name}」を手に入れた！ #おさんぽクエスト`;
-              const url = "https://osanpo-quest.vercel.app";
-              if (navigator.share) { try { await navigator.share({ text, url }); } catch {} }
-              else { await navigator.clipboard.writeText(`${text}\n${url}`); alert("コピーしました！"); }
-            }}
-            className="btn-secondary w-full text-center"
-          >シェアする</button>
+            onClick={handleShare}
+            className="card-glass flex w-full items-center gap-3 p-3 text-left transition active:scale-[0.98]"
+          >
+            {item.image_url ? (
+              <img src={item.image_url} alt={item.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" style={{ border: "1px solid var(--color-gold)" }} />
+            ) : (
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg" style={{ background: "var(--color-card)", border: "1px solid var(--color-gold)" }}>
+                <span className="text-xl">✨</span>
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-[var(--color-text)]">{item.name}</p>
+              <p className="text-[10px]" style={{ color: "var(--color-gold)" }}>{"★".repeat(item.rarity)}</p>
+              <p className="text-[10px]" style={{ color: "var(--color-teal)" }}>タップしてシェア →</p>
+            </div>
+          </button>
+
+          <button onClick={() => router.push("/collection")} className="btn-primary w-full text-center">コレクションを見る</button>
           <button onClick={() => router.push("/")} className="btn-ghost w-full text-center text-sm">ホームに戻る</button>
         </div>
       </div>
