@@ -11,16 +11,28 @@ export async function reverseGeocode(
     `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja&zoom=16`,
     { headers: { "User-Agent": "OsanpoQuest/1.0" } }
   );
-  const data = await res.json();
 
+  if (!res.ok) {
+    console.error(`[reverseGeocode] Nominatim API error: ${res.status}`);
+    return { area_name: "不明な場所", area_code: "unknown", area_keywords: [] };
+  }
+
+  const data = await res.json();
   const address = data.address;
-  const area_name = [
-    address.state || address.province,
-    address.city || address.town,
-    address.suburb || address.neighbourhood,
-  ]
-    .filter(Boolean)
-    .join("");
+
+  if (!address) {
+    console.warn("[reverseGeocode] No address in response");
+    return { area_name: "不明な場所", area_code: "unknown", area_keywords: [] };
+  }
+
+  const area_name =
+    [
+      address.state || address.province,
+      address.city || address.town,
+      address.suburb || address.neighbourhood,
+    ]
+      .filter(Boolean)
+      .join("") || "不明な場所";
 
   const area_code = area_name.replace(/[都道府県市区町村]/g, "_").toLowerCase();
 

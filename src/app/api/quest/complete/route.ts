@@ -7,6 +7,7 @@ import {
   buildCompletionMessagePrompt,
 } from "@/lib/prompts";
 import { generateItemImage } from "@/lib/image-generation";
+import { isValidLatLng, isValidUUID } from "@/lib/validation";
 
 type ItemGeneration = {
   name: string;
@@ -28,13 +29,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { quest_id, lat, lng } = (await request.json()) as {
+  const body = await request.json();
+  const { quest_id, lat, lng } = body as {
     quest_id: string;
     lat: number;
     lng: number;
   };
 
-  // クエスト取得
+  if (!isValidUUID(quest_id)) {
+    return NextResponse.json({ error: "Invalid quest_id" }, { status: 400 });
+  }
+  if (!isValidLatLng(lat, lng)) {
+    return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
+  }
+
   const { data: quest } = await supabase
     .from("quests")
     .select("*")
@@ -50,7 +58,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // 1. ゴール判定
   const complete = isQuestComplete(
     lat,
     lng,
@@ -66,7 +73,6 @@ export async function POST(request: Request) {
     });
   }
 
-  // 2. Claude APIでアイテム生成
   const itemPrompt = buildItemGenerationPrompt(
     quest.god_name,
     quest.god_type,
@@ -77,7 +83,6 @@ export async function POST(request: Request) {
   const itemResponse = await generateSimple(itemPrompt);
   const itemData = extractJSON<ItemGeneration>(itemResponse);
 
-  // 3. items テーブルに INSERT
   const { data: item, error: itemError } = await supabase
     .from("items")
     .insert({
@@ -100,7 +105,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // 3.5 画像生成 + Supabase Storage アップロード
   let imageUrl = item.image_url;
   if (itemData.image_prompt_hint) {
     const generatedUrl = await generateItemImage(
@@ -116,7 +120,6 @@ export async function POST(request: Request) {
     }
   }
 
-  // 4. クエストを完了に更新
   await supabase
     .from("quests")
     .update({
@@ -125,7 +128,6 @@ export async function POST(request: Request) {
     })
     .eq("id", quest_id);
 
-  // 5. users.total_quests_completed をインクリメント
   const { data: profile } = await supabase
     .from("users")
     .select("total_quests_completed")
@@ -142,7 +144,6 @@ export async function POST(request: Request) {
       .eq("id", user.id);
   }
 
-  // 6. クリア時の台詞生成
   const messagePrompt = buildCompletionMessagePrompt(
     quest.god_name,
     quest.god_type,

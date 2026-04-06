@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/validation";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -11,7 +12,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { quest_id } = (await request.json()) as { quest_id: string };
+  const body = await request.json();
+  const { quest_id } = body as { quest_id: string };
+
+  if (!isValidUUID(quest_id)) {
+    return NextResponse.json({ error: "Invalid quest_id" }, { status: 400 });
+  }
 
   const { error } = await supabase
     .from("quests")

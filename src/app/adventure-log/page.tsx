@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AdventureLogWrapper } from "./adventure-log-wrapper";
 
@@ -30,10 +31,12 @@ export default async function AdventureLogPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) redirect("/login");
+
   const { data: logs } = await supabase
     .from("adventure_logs")
     .select("*")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .returns<AdventureLog[]>();
 
   return <AdventureLogWrapper logs={logs || []} />;

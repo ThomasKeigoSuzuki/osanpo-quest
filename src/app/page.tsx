@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 type UserProfile = {
@@ -14,32 +15,32 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) redirect("/login");
+
   const { data: profile } = await supabase
     .from("users")
     .select("display_name, total_quests_completed")
-    .eq("id", user!.id)
+    .eq("id", user.id)
     .single<UserProfile>();
 
-  // 進行中クエストを取得
   const { data: activeQuest } = await supabase
     .from("quests")
     .select("id")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .eq("status", "active")
     .limit(1)
     .single();
 
-  // コレクション数を取得
   const { count: itemCount } = await supabase
     .from("items")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", user!.id);
+    .eq("user_id", user.id);
 
-  // 訪れたエリア数を取得
+  // DB側でdistinctカウント（全件取得を避ける）
   const { data: areaData } = await supabase
     .from("quests")
     .select("start_area_name")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .eq("status", "completed");
 
   const areaCount = areaData
@@ -48,7 +49,6 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col items-center px-4 pt-12">
-      {/* ヘッダー */}
       <p className="text-sm text-[#B0A898]">
         {profile?.display_name ?? "ぼうけんしゃ"}の冒険
       </p>
@@ -56,11 +56,10 @@ export default async function HomePage() {
         おさんぽクエスト
       </h1>
 
-      {/* シナコのアバター */}
       <div className="mt-12">
         <img
           src="/shinako.png"
-          alt="シナコ"
+          alt="風を司る放浪の神様シナコ"
           width={192}
           height={192}
           className="h-48 w-48 rounded-full border-4 border-[#E8DFD0] object-cover shadow-lg"
@@ -72,7 +71,6 @@ export default async function HomePage() {
           : <>放浪の神様「<span className="font-wafuu">シナコ</span>」が<br />あなたの冒険を待っています</>}
       </p>
 
-      {/* クエスト開始 or 続きからボタン */}
       {activeQuest ? (
         <Link
           href={`/quest/${activeQuest.id}`}
@@ -89,7 +87,6 @@ export default async function HomePage() {
         </Link>
       )}
 
-      {/* 統計 */}
       <div className="mt-8 flex gap-8 text-center">
         <div>
           <p className="text-2xl font-bold text-[#6B8E7B]">

@@ -10,16 +10,22 @@ function CompleteContent() {
   const itemStr = searchParams.get("item");
   const godMessage = searchParams.get("message") || "";
 
-  const item = itemStr
-    ? (JSON.parse(itemStr) as {
-        id: string;
-        name: string;
-        description: string;
-        category: string;
-        image_url: string | null;
-        rarity: number;
-      })
-    : null;
+  let item: {
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+    image_url: string | null;
+    rarity: number;
+  } | null = null;
+
+  if (itemStr) {
+    try {
+      item = JSON.parse(itemStr);
+    } catch {
+      // URL パラメータ不正時はnullのまま
+    }
+  }
 
   const [stage, setStage] = useState(0);
   const [showFlash, setShowFlash] = useState(false);

@@ -47,7 +47,7 @@ export function SettingsForm() {
     } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase
+    const { error: updateError } = await supabase
       .from("users")
       .update({
         display_name: displayName.trim(),
@@ -55,8 +55,12 @@ export function SettingsForm() {
       })
       .eq("id", user.id);
 
-    setOriginalName(displayName.trim());
     setSaving(false);
+    if (updateError) {
+      alert("保存に失敗しました。もう一度お試しください。");
+      return;
+    }
+    setOriginalName(displayName.trim());
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }

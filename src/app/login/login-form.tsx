@@ -32,12 +32,15 @@ export function LoginForm() {
   }
 
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    if (oauthError) {
+      setError("Googleログインに失敗しました。もう一度お試しください。");
+    }
   }
 
   return (

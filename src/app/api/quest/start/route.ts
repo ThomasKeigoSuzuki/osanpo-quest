@@ -10,6 +10,7 @@ import {
   buildLocalGodQuestSystemPrompt,
 } from "@/lib/prompts";
 import { generateGodImage } from "@/lib/image-generation";
+import { isValidLatLng } from "@/lib/validation";
 
 type QuestGeneration = {
   mission_text: string;
@@ -48,9 +49,9 @@ export async function POST(request: Request) {
     god_preference?: "wanderer" | "local" | "random";
   };
 
-  if (!lat || !lng) {
+  if (!isValidLatLng(lat, lng)) {
     return NextResponse.json(
-      { error: "lat and lng are required" },
+      { error: "Valid lat and lng are required" },
       { status: 400 }
     );
   }

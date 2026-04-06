@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/validation";
+
+type RoutePosition = { lat: number; lng: number; timestamp: string };
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -11,10 +14,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { quest_id, positions } = (await request.json()) as {
+  const body = await request.json();
+  const { quest_id, positions } = body as {
     quest_id: string;
-    positions: { lat: number; lng: number; timestamp: string }[];
+    positions: RoutePosition[];
   };
+
+  if (!isValidUUID(quest_id)) {
+    return NextResponse.json({ error: "Invalid quest_id" }, { status: 400 });
+  }
+
+  if (!Array.isArray(positions) || positions.length === 0) {
+    return NextResponse.json({ error: "positions must be a non-empty array" }, { status: 400 });
+  }
 
   // 既存のroute_logを取得
   const { data: quest } = await supabase
@@ -28,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Quest not found" }, { status: 404 });
   }
 
-  const currentLog = (quest.route_log as unknown[]) || [];
+  const currentLog = Array.isArray(quest.route_log) ? quest.route_log as RoutePosition[] : [];
   const updatedLog = [...currentLog, ...positions];
 
   const { error } = await supabase
