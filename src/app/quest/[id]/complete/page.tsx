@@ -3,6 +3,21 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 
+type Item = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  image_url: string | null;
+  rarity: number;
+};
+
+function getRarityTier(rarity: number): "common" | "rare" | "ssr" {
+  if (rarity >= 4) return "ssr";
+  if (rarity >= 3) return "rare";
+  return "common";
+}
+
 function CompleteContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -10,21 +25,9 @@ function CompleteContent() {
   const itemStr = searchParams.get("item");
   const godMessage = searchParams.get("message") || "";
 
-  let item: {
-    id: string;
-    name: string;
-    description: string;
-    category: string;
-    image_url: string | null;
-    rarity: number;
-  } | null = null;
-
+  let item: Item | null = null;
   if (itemStr) {
-    try {
-      item = JSON.parse(itemStr);
-    } catch {
-      // URL パラメータ不正時はnullのまま
-    }
+    try { item = JSON.parse(itemStr); } catch {}
   }
 
   const [stage, setStage] = useState(0);
@@ -33,159 +36,118 @@ function CompleteContent() {
   useEffect(() => {
     if (!item) return;
     const timers = [
-      setTimeout(() => {
-        setShowFlash(true);
-        setStage(1);
-      }, 300),
-      setTimeout(() => setStage(2), 800),
-      setTimeout(() => setShowFlash(false), 1300), // フラッシュを完全除去
-      setTimeout(() => setStage(3), 1500),
-      setTimeout(() => setStage(4), 2200),
+      setTimeout(() => { setShowFlash(true); setStage(1); }, 300),
+      setTimeout(() => setStage(2), 1200),
+      setTimeout(() => setShowFlash(false), 1300),
+      setTimeout(() => setStage(3), 1800),
+      setTimeout(() => setStage(4), 2500),
+      setTimeout(() => setStage(5), 3000),
     ];
     return () => timers.forEach(clearTimeout);
   }, [item]);
 
   if (!item) {
     return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <button
-          onClick={() => router.push("/")}
-          className="rounded-xl bg-[#6B8E7B] px-6 py-3 text-white"
-        >
-          ホームに戻る
-        </button>
+      <div className="flex min-h-dvh items-center justify-center bg-fantasy">
+        <button onClick={() => router.push("/")} className="btn-primary">ホームに戻る</button>
       </div>
     );
   }
 
+  const tier = getRarityTier(item.rarity);
+  const bgGrad = tier === "ssr"
+    ? "from-[#1a1a2e] via-[#2a1a3e] to-[#1a1a2e]"
+    : tier === "rare"
+      ? "from-[#1a1a2e] via-[#1a2a3e] to-[#1a1a2e]"
+      : "from-[#1a1a2e] via-[#16213e] to-[#1a1a2e]";
+
+  const particleCount = tier === "ssr" ? 20 : tier === "rare" ? 12 : 6;
+  const flashColor = tier === "ssr" ? "bg-[var(--color-gold)]" : tier === "rare" ? "bg-[var(--color-gold)]" : "bg-white";
+
   return (
-    <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-[#FFF8F0] px-4">
-      {/* 背景パーティクル（最背面） */}
+    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-gradient-to-b ${bgGrad} px-4`}>
+      {/* パーティクル */}
       {stage >= 1 && (
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          {Array.from({ length: 12 }).map((_, i) => (
+          {Array.from({ length: particleCount }).map((_, i) => (
             <div
               key={i}
-              className="absolute animate-[float_3s_ease-in-out_infinite] text-[#D4C5B0]"
+              className="absolute animate-[float_3s_ease-in-out_infinite]"
               style={{
                 left: `${10 + ((i * 37 + 13) % 80)}%`,
                 top: `${10 + ((i * 53 + 7) % 80)}%`,
                 animationDelay: `${(i * 0.4) % 2}s`,
-                opacity: 0.3,
+                opacity: tier === "ssr" ? 0.6 : 0.3,
               }}
             >
-              <span className="text-lg">✦</span>
+              <span className={`text-sm ${tier === "common" ? "text-white/40" : "text-[var(--color-gold)]"}`}>
+                {tier === "ssr" ? "✦" : "·"}
+              </span>
             </div>
           ))}
         </div>
       )}
 
-      {/* 光のフラッシュ（一時的に表示して消す） */}
+      {/* フラッシュ */}
       {showFlash && (
-        <div className="pointer-events-none absolute inset-0 z-10 animate-[flash_1s_ease-out_forwards] bg-white" />
+        <div className={`pointer-events-none absolute inset-0 z-10 animate-[flash_1s_ease-out_forwards] ${flashColor} ${tier === "ssr" ? "opacity-50" : "opacity-30"}`} />
       )}
 
-      {/* メインコンテンツ（パーティクルの上） */}
-      <div className="relative z-20 flex flex-col items-center">
-        {/* クリア台詞 */}
-        <div
-          className={`text-center transition-all duration-700 ${
-            stage >= 2 ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-          }`}
-        >
-          <p className="text-sm leading-relaxed text-[#8B7E6A]">
-            {godMessage}
-          </p>
+      {/* メインコンテンツ */}
+      <div className="relative z-20 flex w-full max-w-sm flex-col items-center">
+        {/* 神様の台詞 */}
+        <div className={`card-glass w-full px-5 py-4 text-center transition-all duration-700 ${stage >= 2 ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+          <span className="text-[var(--color-gold)] opacity-50">&ldquo;</span>
+          <p className="inline text-sm leading-relaxed text-[var(--color-text)]">{godMessage}</p>
+          <span className="text-[var(--color-gold)] opacity-50">&rdquo;</span>
         </div>
 
-        {/* アイテム獲得演出 */}
-        <div
-          className={`mt-8 text-center transition-all duration-700 ${
-            stage >= 3 ? "scale-100 opacity-100" : "scale-75 opacity-0"
-          }`}
-        >
-          <p className="text-xs text-[#B0A898]">アイテムを手に入れた！</p>
+        {/* アイテム */}
+        <div className={`mt-8 text-center transition-all duration-700 ${stage >= 3 ? "scale-100 opacity-100" : "scale-75 opacity-0"}`}>
+          <p className="text-xs text-[var(--color-text-sub)]">アイテムを手に入れた！</p>
 
           <div className="relative mt-4">
-            <div className="absolute -inset-4 animate-[glow_2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-yellow-200/30 via-amber-100/20 to-yellow-200/30 blur-xl" />
-            <div className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-2xl bg-white shadow-xl ring-2 ring-yellow-200/50">
+            {/* グローリング */}
+            {tier !== "common" && (
+              <>
+                <div className={`absolute -inset-4 animate-[glow_2s_ease-in-out_infinite] rounded-full blur-xl ${tier === "ssr" ? "bg-[var(--color-gold)]/30" : "bg-[var(--color-gold)]/15"}`} />
+                {tier === "ssr" && <div className="absolute -inset-6 animate-[glowRing_2s_ease-in-out_infinite] rounded-full border border-[var(--color-gold)] opacity-30" />}
+              </>
+            )}
+            <div className={`relative mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border ${tier === "ssr" ? "border-[var(--color-gold)] shadow-[0_0_30px_rgba(232,184,73,0.3)]" : tier === "rare" ? "border-[var(--color-gold)]/50" : "border-[var(--color-border)]"} bg-[rgba(255,255,255,0.05)] backdrop-blur-sm`}>
               {item.image_url ? (
-                <img
-                  src={item.image_url}
-                  alt={item.name}
-                  className="h-32 w-32 rounded-xl object-cover"
-                />
+                <img src={item.image_url} alt={item.name} className="h-32 w-32 rounded-xl object-cover" />
               ) : (
-                <div className="h-32 w-32 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-xl bg-gradient-to-r from-[#E8DFD0] via-[#F5EDE0] to-[#E8DFD0] bg-[length:200%_100%]" />
+                <div className="h-32 w-32 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] via-[rgba(255,255,255,0.1)] to-[rgba(255,255,255,0.05)] bg-[length:200%_100%]" />
               )}
             </div>
           </div>
 
-          <h2 className="font-wafuu mt-5 text-xl font-bold text-[#6B8E7B]">
-            {item.name}
-          </h2>
-          <div className="mt-1 flex justify-center gap-0.5">
+          <h2 className="font-wafuu text-gold mt-5 text-xl font-bold">{item.name}</h2>
+          <div className={`mt-1 flex justify-center gap-0.5 transition-all duration-500 ${stage >= 4 ? "opacity-100" : "opacity-0"}`}>
             {Array.from({ length: item.rarity }).map((_, i) => (
-              <span
-                key={i}
-                className="animate-[starPop_0.3s_ease-out_forwards] text-sm text-yellow-500"
-                style={{ animationDelay: `${2.2 + i * 0.15}s`, opacity: 0 }}
-              >
-                ★
-              </span>
+              <span key={i} className="animate-[starGlow_2s_ease-in-out_infinite] text-sm text-[var(--color-gold)]" style={{ animationDelay: `${i * 0.2}s` }}>★</span>
             ))}
           </div>
-          <p className="mt-3 text-sm leading-relaxed text-[#5A5A5A]">
-            {item.description}
-          </p>
-          <p className="mt-1 text-xs text-[#B0A898]">
-            {item.category === "material"
-              ? "素材"
-              : item.category === "local"
-                ? "ご当地品"
-                : item.category === "crafted"
-                  ? "合成品"
-                  : "秘宝"}
-          </p>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-sub)]">{item.description}</p>
+          <span className="mt-1 inline-block rounded-full bg-[rgba(255,255,255,0.08)] px-3 py-0.5 text-xs text-[var(--color-text-muted)]">
+            {item.category === "material" ? "素材" : item.category === "local" ? "ご当地品" : item.category === "crafted" ? "合成品" : "秘宝"}
+          </span>
         </div>
 
         {/* ボタン */}
-        <div
-          className={`mt-10 w-full max-w-xs space-y-3 transition-all duration-500 ${
-            stage >= 4 ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
-        >
-          <button
-            onClick={() => router.push("/collection")}
-            className="w-full rounded-2xl bg-[#6B8E7B] px-8 py-4 text-center font-bold text-white shadow-lg transition hover:bg-[#5A7D6A] active:scale-[0.98]"
-          >
-            コレクションを見る
-          </button>
+        <div className={`mt-10 w-full space-y-3 transition-all duration-500 ${stage >= 5 ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}>
+          <button onClick={() => router.push("/collection")} className="btn-primary w-full text-center">コレクションを見る</button>
           <button
             onClick={async () => {
               const text = `おさんぽクエストで「${item.name}」を手に入れた！ #おさんぽクエスト`;
               const url = "https://osanpo-quest.vercel.app";
-              if (navigator.share) {
-                try {
-                  await navigator.share({ text, url });
-                } catch {
-                  // ユーザーがキャンセル
-                }
-              } else {
-                await navigator.clipboard.writeText(`${text}\n${url}`);
-                alert("クリップボードにコピーしました！");
-              }
+              if (navigator.share) { try { await navigator.share({ text, url }); } catch {} }
+              else { await navigator.clipboard.writeText(`${text}\n${url}`); alert("コピーしました！"); }
             }}
-            className="w-full rounded-xl border border-[#D4C5B0] px-4 py-3 text-center text-sm font-medium text-[#8B7E6A] transition hover:bg-white"
-          >
-            シェアする
-          </button>
-          <button
-            onClick={() => router.push("/")}
-            className="w-full py-2 text-center text-xs text-[#B0A898] transition hover:text-[#8B7E6A]"
-          >
-            ホームに戻る
-          </button>
+            className="btn-secondary w-full text-center"
+          >シェアする</button>
+          <button onClick={() => router.push("/")} className="btn-ghost w-full text-center text-sm">ホームに戻る</button>
         </div>
       </div>
     </div>
@@ -194,13 +156,13 @@ function CompleteContent() {
 
 export default function QuestCompletePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-dvh items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E8DFD0] border-t-[#6B8E7B]" />
+    <Suspense fallback={
+      <div className="flex min-h-dvh items-center justify-center bg-fantasy">
+        <div className="relative h-12 w-12">
+          <div className="absolute inset-0 animate-[spin_3s_linear_infinite] rounded-full border-2 border-[var(--color-gold)] border-t-transparent" />
         </div>
-      }
-    >
+      </div>
+    }>
       <CompleteContent />
     </Suspense>
   );
