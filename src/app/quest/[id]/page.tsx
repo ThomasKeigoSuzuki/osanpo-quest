@@ -118,7 +118,11 @@ export default function QuestProgressPage() {
       const res = await fetch("/api/quest/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quest_id: id, lat: userPos.lat, lng: userPos.lng }) });
       if (!res.ok) throw new Error();
       const data = await res.json();
-      if (data.success) router.push(`/quest/${id}/complete?item=${encodeURIComponent(JSON.stringify(data.item))}&message=${encodeURIComponent(data.god_message)}`);
+      if (data.success) {
+        let url = `/quest/${id}/complete?item=${encodeURIComponent(JSON.stringify(data.item))}&message=${encodeURIComponent(data.god_message)}`;
+        if (data.bond_info) url += `&bond=${encodeURIComponent(JSON.stringify(data.bond_info))}`;
+        router.push(url);
+      }
       else { setError(data.error || "クリア判定に失敗"); setCompleting(false); }
     } catch { setError("通信エラーです"); setCompleting(false); }
   }, [userPos, isInRange, completing, id, router]);

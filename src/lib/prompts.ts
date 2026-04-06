@@ -51,16 +51,22 @@ JSONのみを出力してください。説明文は不要です。`;
 export function buildShinakoUserPrompt(
   lat: number,
   lng: number,
-  areaName: string
+  areaName: string,
+  bondInfo?: { level: number; levelName: string; toneModifier: string }
 ): string {
   const now = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-  return `【現在地情報】
+  let prompt = `【現在地情報】
 緯度: ${lat}
 経度: ${lng}
 地名: ${areaName}
-現在時刻: ${now}
+現在時刻: ${now}`;
 
-この場所・時間にふさわしいミッションを1つ生成してください。`;
+  if (bondInfo) {
+    prompt += `\n\n【この冒険者との絆レベル: ${bondInfo.level}（${bondInfo.levelName}）】\n${bondInfo.toneModifier}`;
+  }
+
+  prompt += `\n\nこの場所・時間にふさわしいミッションを1つ生成してください。`;
+  return prompt;
 }
 
 /** ご当地神 生成用プロンプト */

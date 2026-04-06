@@ -155,6 +155,41 @@ export type Database = {
         };
         Relationships: [];
       };
+      god_bonds: {
+        Row: {
+          id: string;
+          user_id: string;
+          god_name: string;
+          god_type: "wanderer" | "local";
+          bond_level: number;
+          bond_exp: number;
+          total_quests: number;
+          first_met_at: string;
+          last_quest_at: string | null;
+          god_image_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          god_name: string;
+          god_type: "wanderer" | "local";
+          bond_level?: number;
+          bond_exp?: number;
+          total_quests?: number;
+          first_met_at?: string;
+          last_quest_at?: string;
+          god_image_url?: string | null;
+        };
+        Update: {
+          bond_level?: number;
+          bond_exp?: number;
+          total_quests?: number;
+          last_quest_at?: string;
+          god_image_url?: string | null;
+        };
+        Relationships: [];
+      };
       daily_quests: {
         Row: {
           id: string;

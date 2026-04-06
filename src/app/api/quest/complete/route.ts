@@ -9,6 +9,7 @@ import {
 import { generateItemImage } from "@/lib/image-generation";
 import { isValidLatLng, isValidUUID } from "@/lib/validation";
 import { getStreakBonus } from "@/lib/daily-quest";
+import { getBondLevel } from "@/lib/bond-system";
 
 type ItemGeneration = {
   name: string;
@@ -180,6 +181,52 @@ export async function POST(request: Request) {
       .eq("id", user.id);
   }
 
+  // 絆経験値の加算
+  const { data: existingBond } = await supabase
+    .from("god_bonds")
+    .select("bond_exp, total_quests, bond_level")
+    .eq("user_id", user.id)
+    .eq("god_name", quest.god_name)
+    .single();
+
+  let bondLeveledUp = false;
+  let bondNewLevel = 1;
+  let bondLevelName = "出会い";
+
+  if (existingBond) {
+    const newExp = existingBond.bond_exp + 1;
+    const newTotal = existingBond.total_quests + 1;
+    const bl = getBondLevel(newExp);
+    bondNewLevel = bl.level;
+    bondLevelName = bl.name;
+    bondLeveledUp = bl.level > existingBond.bond_level;
+
+    await supabase
+      .from("god_bonds")
+      .update({
+        bond_exp: newExp,
+        total_quests: newTotal,
+        bond_level: bl.level,
+        last_quest_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id)
+      .eq("god_name", quest.god_name);
+  } else {
+    // 初遭遇
+    await supabase.from("god_bonds").insert({
+      user_id: user.id,
+      god_name: quest.god_name,
+      god_type: quest.god_type,
+      bond_exp: 1,
+      total_quests: 1,
+      last_quest_at: new Date().toISOString(),
+      god_image_url: quest.god_type === "wanderer" ? "/shinako.png" : null,
+    });
+    const bl = getBondLevel(1);
+    bondNewLevel = bl.level;
+    bondLevelName = bl.name;
+  }
+
   const messagePrompt = buildCompletionMessagePrompt(
     quest.god_name,
     quest.god_type,
@@ -199,5 +246,11 @@ export async function POST(request: Request) {
       rarity: item.rarity,
     },
     god_message: godMessage.replace(/^["']|["']$/g, "").trim(),
+    bond_info: {
+      god_name: quest.god_name,
+      new_level: bondNewLevel,
+      level_name: bondLevelName,
+      leveled_up: bondLeveledUp,
+    },
   });
 }

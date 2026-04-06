@@ -12,6 +12,7 @@ import {
 import { generateGodImage } from "@/lib/image-generation";
 import { isValidLatLng } from "@/lib/validation";
 import { getDailyQuestConfig, getStreakBonus, getTodayDateString } from "@/lib/daily-quest";
+import { getBondLevel, getBondToneModifier } from "@/lib/bond-system";
 
 type QuestGeneration = {
   mission_text: string;
@@ -173,9 +174,23 @@ export async function POST(request: Request) {
     }
   }
 
-  // 3. Claude APIでクエスト生成
+  // 3. 絆レベル取得 + Claude APIでクエスト生成
+  const { data: bondData } = await supabase
+    .from("god_bonds")
+    .select("bond_exp")
+    .eq("user_id", user.id)
+    .eq("god_name", godName)
+    .single();
+
+  const bondInfo = bondData
+    ? (() => {
+        const bl = getBondLevel(bondData.bond_exp);
+        return { level: bl.level, levelName: bl.name, toneModifier: getBondToneModifier(bl.level) };
+      })()
+    : undefined;
+
   let questResponse: string;
-  const userPrompt = buildShinakoUserPrompt(lat, lng, geo.area_name);
+  const userPrompt = buildShinakoUserPrompt(lat, lng, geo.area_name, bondInfo);
 
   if (godType === "local" && localGodId) {
     const serviceClient = await createServiceClient();

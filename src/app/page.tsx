@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getDailyQuestConfig, getStreakBonus, getCategoryBonusLabel, getTodayDateString } from "@/lib/daily-quest";
+import { getBondLevel } from "@/lib/bond-system";
 
 type UserProfile = {
   display_name: string;
@@ -32,6 +33,7 @@ export default async function HomePage() {
   let itemCount = 0;
   let areaCount = 0;
   let dailyCompleted = false;
+  let shinakoBond: { level: number; name: string } | null = null;
 
   if (user) {
     const { data: p } = await supabase
@@ -72,6 +74,18 @@ export default async function HomePage() {
       .eq("quest_date", today)
       .single();
     dailyCompleted = daily?.completed ?? false;
+
+    // シナコの絆
+    const { data: bond } = await supabase
+      .from("god_bonds")
+      .select("bond_exp")
+      .eq("user_id", user.id)
+      .eq("god_name", "シナコ")
+      .single();
+    if (bond) {
+      const bl = getBondLevel(bond.bond_exp);
+      if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name };
+    }
   }
 
   const jstDay = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })).getDay();
@@ -90,8 +104,8 @@ export default async function HomePage() {
         おさんぽクエスト
       </h1>
 
-      {/* シナコ */}
-      <div className="relative mt-8">
+      {/* シナコ（タップで絆ページへ） */}
+      <Link href="/bonds" className="relative mt-8 block">
         <div className="absolute -inset-2 animate-[glowRing_3s_ease-in-out_infinite] rounded-full border-2 border-[var(--color-gold)] opacity-60" />
         <img
           src="/shinako.png"
@@ -100,7 +114,12 @@ export default async function HomePage() {
           height={144}
           className="relative h-36 w-36 rounded-full border-2 border-[var(--color-gold)] object-cover shadow-[0_0_30px_rgba(232,184,73,0.2)]"
         />
-      </div>
+        {shinakoBond && (
+          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full px-2.5 py-0.5 text-[10px] font-bold" style={{ background: "rgba(232,184,73,0.2)", color: "var(--color-gold)", border: "1px solid rgba(232,184,73,0.3)" }}>
+            💫 Lv.{shinakoBond.level} {shinakoBond.name}
+          </span>
+        )}
+      </Link>
 
       {/* セリフ */}
       <div className="card-glass mt-5 w-full max-w-xs px-4 py-3">

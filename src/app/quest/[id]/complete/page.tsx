@@ -24,10 +24,16 @@ function CompleteContent() {
 
   const itemStr = searchParams.get("item");
   const godMessage = searchParams.get("message") || "";
+  const bondStr = searchParams.get("bond");
 
   let item: Item | null = null;
   if (itemStr) {
     try { item = JSON.parse(itemStr); } catch {}
+  }
+
+  let bondInfo: { god_name: string; new_level: number; level_name: string; leveled_up: boolean } | null = null;
+  if (bondStr) {
+    try { bondInfo = JSON.parse(bondStr); } catch {}
   }
 
   const [stage, setStage] = useState(0);
@@ -135,8 +141,28 @@ function CompleteContent() {
           </span>
         </div>
 
+        {/* 絆情報 */}
+        {bondInfo && stage >= 4 && (
+          <div className={`card-glass mt-6 w-full p-3 text-center transition-all duration-500 ${stage >= 4 ? "opacity-100" : "opacity-0"}`}>
+            {bondInfo.leveled_up ? (
+              <>
+                <p className="text-sm font-bold text-gold animate-[starGlow_1.5s_ease-in-out_infinite]">
+                  💫 絆レベルが上がった！
+                </p>
+                <p className="mt-1 text-xs" style={{ color: "var(--color-text-sub)" }}>
+                  {bondInfo.god_name}との絆: Lv.{bondInfo.new_level} {bondInfo.level_name}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs" style={{ color: "var(--color-text-sub)" }}>
+                💫 {bondInfo.god_name}との絆が深まった（Lv.{bondInfo.new_level} {bondInfo.level_name}）
+              </p>
+            )}
+          </div>
+        )}
+
         {/* ボタン */}
-        <div className={`mt-10 w-full space-y-3 transition-all duration-500 ${stage >= 5 ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}>
+        <div className={`mt-6 w-full space-y-3 transition-all duration-500 ${stage >= 5 ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}>
           <button onClick={() => router.push("/collection")} className="btn-primary w-full text-center">コレクションを見る</button>
           <button
             onClick={async () => {
