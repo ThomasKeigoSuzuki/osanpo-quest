@@ -5,9 +5,6 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { calculateGoalPosition } from "@/lib/geo";
 
-const ARROW_COLOR = "#D4A574";
-const TRAIL_COLOR = "#6B8E7B";
-
 export function MiniMap({
   lat,
   lng,
@@ -28,7 +25,7 @@ export function MiniMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
-  const pulseRef = useRef<HTMLDivElement | null>(null);
+  const pulseMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const arrowMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const initRef = useRef(false);
 
@@ -48,12 +45,13 @@ export function MiniMap({
       attributionControl: false,
     });
 
-    // 提灯マーカー
+    // ユーザーマーカー — グローする丸ピン
     const markerEl = document.createElement("div");
-    markerEl.innerHTML =
-      '<span style="font-size:28px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">🏮</span>';
-    markerEl.style.lineHeight = "1";
-
+    markerEl.innerHTML = `
+      <div style="position:relative;width:40px;height:40px">
+        <div style="position:absolute;inset:6px;border-radius:50%;background:rgba(107,142,123,0.25);animation:pulseRing 2s ease-out infinite"></div>
+        <div style="position:absolute;inset:10px;width:20px;height:20px;border-radius:50%;background:#6B8E7B;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35)"></div>
+      </div>`;
     const marker = new mapboxgl.Marker({ element: markerEl })
       .setLngLat([lng, lat])
       .addTo(map);
@@ -71,28 +69,31 @@ export function MiniMap({
         id: "trail-line",
         type: "line",
         source: "trail",
-        paint: {
-          "line-color": TRAIL_COLOR,
-          "line-width": 2,
-          "line-opacity": 0.5,
-        },
+        paint: { "line-color": "#6B8E7B", "line-width": 3, "line-opacity": 0.6 },
         layout: { "line-cap": "round", "line-join": "round" },
       });
 
-      // 方角矢印ライン ソース
+      // 方角矢印ライン — グロー（太い半透明の下地）
       map.addSource("arrow-line", {
         type: "geojson",
         data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } },
+      });
+      map.addLayer({
+        id: "arrow-line-glow",
+        type: "line",
+        source: "arrow-line",
+        paint: { "line-color": "#FF6B35", "line-width": 10, "line-opacity": 0.2, "line-blur": 6 },
+        layout: { "line-cap": "round" },
       });
       map.addLayer({
         id: "arrow-line-layer",
         type: "line",
         source: "arrow-line",
         paint: {
-          "line-color": ARROW_COLOR,
-          "line-width": 3,
-          "line-opacity": 0.8,
-          "line-dasharray": [2, 3],
+          "line-color": "#FF6B35",
+          "line-width": 4,
+          "line-opacity": 0.9,
+          "line-dasharray": [1.5, 2],
         },
         layout: { "line-cap": "round" },
       });
@@ -103,6 +104,7 @@ export function MiniMap({
       mapRef.current = null;
       markerRef.current = null;
       arrowMarkerRef.current = null;
+      pulseMarkerRef.current = null;
       initRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,10 +119,7 @@ export function MiniMap({
       src.setData({
         type: "Feature",
         properties: {},
-        geometry: {
-          type: "LineString",
-          coordinates: routePoints.map((p) => [p.lng, p.lat]),
-        },
+        geometry: { type: "LineString", coordinates: routePoints.map((p) => [p.lng, p.lat]) },
       });
     }
   }, [routePoints]);
@@ -134,57 +133,42 @@ export function MiniMap({
     map.easeTo({ center: [lng, lat], zoom: 17, duration: 500 });
     marker.setLngLat([lng, lat]);
 
-    // パルスリング管理
-    if (pulseRef.current) {
-      pulseRef.current.remove();
-      pulseRef.current = null;
-    }
-    // 矢印マーカー管理
-    if (arrowMarkerRef.current) {
-      arrowMarkerRef.current.remove();
-      arrowMarkerRef.current = null;
-    }
+    // 既存の補助マーカーを削除
+    if (pulseMarkerRef.current) { pulseMarkerRef.current.remove(); pulseMarkerRef.current = null; }
+    if (arrowMarkerRef.current) { arrowMarkerRef.current.remove(); arrowMarkerRef.current = null; }
+
+    const arrowSrc = map.getSource("arrow-line") as mapboxgl.GeoJSONSource | undefined;
 
     if (isInRange) {
-      // パルスリング
+      // ゴール圏内 — 大きなパルスリング
       const pulseEl = document.createElement("div");
       pulseEl.innerHTML = `
-        <div style="position:relative;width:60px;height:60px">
+        <div style="position:relative;width:80px;height:80px">
           <div style="position:absolute;inset:0;border-radius:50%;border:3px solid #6B8E7B;animation:pulseRing 1.5s ease-out infinite;opacity:0"></div>
-          <div style="position:absolute;inset:8px;border-radius:50%;border:2px solid #6B8E7B;animation:pulseRing 1.5s ease-out 0.4s infinite;opacity:0"></div>
+          <div style="position:absolute;inset:12px;border-radius:50%;border:2px solid #6B8E7B;animation:pulseRing 1.5s ease-out 0.5s infinite;opacity:0"></div>
         </div>`;
-      new mapboxgl.Marker({ element: pulseEl })
+      pulseMarkerRef.current = new mapboxgl.Marker({ element: pulseEl })
         .setLngLat([lng, lat])
         .addTo(map);
-      pulseRef.current = pulseEl;
 
-      // 矢印ラインを非表示
-      const src = map.getSource("arrow-line") as mapboxgl.GeoJSONSource | undefined;
-      if (src) {
-        src.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } });
+      if (arrowSrc) {
+        arrowSrc.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } });
       }
     } else {
-      // 方角矢印ライン
+      // ゴール圏外 — 方角矢印
       const arrowEnd = calculateGoalPosition(lat, lng, bearing, 200);
-      const src = map.getSource("arrow-line") as mapboxgl.GeoJSONSource | undefined;
-      if (src) {
-        src.setData({
+      if (arrowSrc) {
+        arrowSrc.setData({
           type: "Feature",
           properties: {},
-          geometry: {
-            type: "LineString",
-            coordinates: [
-              [lng, lat],
-              [arrowEnd.lng, arrowEnd.lat],
-            ],
-          },
+          geometry: { type: "LineString", coordinates: [[lng, lat], [arrowEnd.lng, arrowEnd.lat]] },
         });
       }
 
-      // 矢印マーカー
+      // 矢印先端マーカー — 大きな三角形
       const arrowEl = document.createElement("div");
-      arrowEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));transform:rotate(${bearing}deg)">
-        <path d="M3 9h10M10 5l4 4-4 4" stroke="${ARROW_COLOR}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      arrowEl.innerHTML = `<svg width="32" height="32" viewBox="0 0 32 32" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));transform:rotate(${bearing + 90}deg)">
+        <polygon points="6,8 26,16 6,24" fill="#FF6B35" stroke="white" stroke-width="2" stroke-linejoin="round"/>
       </svg>`;
       arrowMarkerRef.current = new mapboxgl.Marker({ element: arrowEl })
         .setLngLat([arrowEnd.lng, arrowEnd.lat])
@@ -206,7 +190,7 @@ export function MiniMap({
           className="h-[300px] w-full"
           style={{
             background: "#F5EDE0",
-            filter: "sepia(0.3) saturate(0.8) brightness(1.05)",
+            filter: "sepia(0.15) saturate(0.9) brightness(1.02)",
           }}
         />
         <div className="h-1.5 bg-gradient-to-r from-[#D4C5B0] via-[#E8DFD0] to-[#D4C5B0]" />
@@ -214,10 +198,10 @@ export function MiniMap({
         {/* 距離オーバーレイバッジ */}
         <div className="pointer-events-none absolute bottom-4 left-0 right-0 flex justify-center">
           <div
-            className={`rounded-full px-4 py-1.5 shadow-sm backdrop-blur-sm ${
+            className={`rounded-full px-5 py-2 shadow-md backdrop-blur-sm ${
               isInRange
-                ? "bg-[#6B8E7B]/90 text-white"
-                : "bg-[#FFF8F0]/90 text-[#5A5A5A]"
+                ? "bg-[#6B8E7B]/95 text-white"
+                : "bg-white/90 text-[#5A5A5A] border border-[#E8DFD0]"
             }`}
           >
             <span className="text-sm font-bold">
