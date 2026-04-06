@@ -100,37 +100,44 @@ export default async function HomePage() {
         )}
       </div>
 
-      {/* ===== シナコ + 御簾 (z-10) ===== */}
+      {/* ===== シナコ + 御簾 (z-5, pointer-events-none) ===== */}
       <div
-        className="absolute left-1/2 z-10 -translate-x-1/2"
-        style={{ top: "5%", width: "92%", maxWidth: 400 }}
+        className="pointer-events-none absolute left-1/2 z-[5] -translate-x-1/2"
+        style={{ top: "5%", width: "92%", maxWidth: 400, height: "58dvh" }}
       >
-        <Link href="/bonds" className="block transition active:scale-[1.02]" style={{ height: "58dvh" }}>
-          <MisuOverlay
-            stage={shinakoRevealed ? 5 : 1}
-            characterSrc={SHINAKO_IMG}
-            characterAlt="シナコ"
-            type="shinako"
-          >
-            {shinakoBond && (
-              <span className="absolute left-0 top-0 z-20 rounded-br-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
-                💫 Lv.{shinakoBond.level} {shinakoBond.name}
-              </span>
-            )}
-          </MisuOverlay>
-        </Link>
-        {!shinakoRevealed && (
-          (profile?.total_quests_completed ?? 0) === 0 ? (
-            <p className="mt-1 text-center text-[9px]" style={{ color: "var(--color-text-muted)" }}>
-              クエストをクリアしてシナコに会おう
-            </p>
-          ) : (
-            <div className="mt-2">
-              <HomeOfferingButton />
-            </div>
-          )
-        )}
+        <MisuOverlay
+          stage={shinakoRevealed ? 5 : 1}
+          characterSrc={SHINAKO_IMG}
+          characterAlt="シナコ"
+          type="shinako"
+        >
+          {shinakoBond && (
+            <span className="absolute left-0 top-0 z-20 rounded-br-lg px-2 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
+              💫 Lv.{shinakoBond.level} {shinakoBond.name}
+            </span>
+          )}
+        </MisuOverlay>
       </div>
+
+      {/* シナコタップエリア（中央のみ、他UIと被らない） */}
+      <Link
+        href="/bonds"
+        className="absolute left-1/2 z-[6] -translate-x-1/2"
+        style={{ top: "15%", width: "40%", height: "30dvh" }}
+        aria-label="シナコとの絆"
+      />
+
+      {/* 奉納ボタン (z-20) */}
+      {!shinakoRevealed && (profile?.total_quests_completed ?? 0) > 0 && (
+        <div className="absolute left-1/2 z-20 -translate-x-1/2" style={{ top: "65%", width: "70%", maxWidth: 300 }}>
+          <HomeOfferingButton />
+        </div>
+      )}
+      {!shinakoRevealed && (profile?.total_quests_completed ?? 0) === 0 && (
+        <p className="absolute left-1/2 z-20 -translate-x-1/2 text-center text-[9px]" style={{ top: "66%", color: "var(--color-text-muted)" }}>
+          クエストをクリアしてシナコに会おう
+        </p>
+      )}
 
       {/* ===== セリフ (z-30) ===== */}
       <div className="absolute right-2 z-30" style={{ top: "12%" }}>
