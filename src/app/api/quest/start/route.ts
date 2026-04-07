@@ -156,27 +156,16 @@ export async function POST(request: Request) {
         // ご当地神のイラストを生成（レスポンス前に完了させる）
         if (godData.appearance) {
           try {
-            console.log(`[GodImage] Generating image for ${newGod.god_name} (${newGod.id})...`);
             const url = await generateGodImage(godData.appearance, newGod.id);
             if (url) {
               godImageUrl = url;
-              const { error: updateErr } = await serviceClient
+              await serviceClient
                 .from("local_gods")
                 .update({ image_url: url })
                 .eq("id", newGod.id);
-              if (updateErr) {
-                console.error(`[GodImage] Failed to save URL to DB:`, updateErr);
-              } else {
-                console.log(`[GodImage] Saved: ${url}`);
-              }
-            } else {
-              console.warn(`[GodImage] generateGodImage returned null for ${newGod.id}`);
             }
-          } catch (err) {
-            console.error(`[GodImage] Error generating image for ${newGod.id}:`, err);
-          }
+          } catch {}
         } else {
-          console.warn(`[GodImage] No appearance field in Claude response for ${newGod.god_name}`);
         }
       }
     }

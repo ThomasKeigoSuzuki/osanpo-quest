@@ -43,7 +43,7 @@ function IntroScreen({ activeQuest }: { activeQuest: { id: string } | null }) {
 
   return (
     <div className="relative h-[calc(100dvh-64px)] w-full overflow-hidden" style={{ maxWidth: 448, margin: "0 auto" }}>
-      <img src="/bg-shrine.png" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" style={{ filter: "brightness(0.35) saturate(0.7)" }} />
+      <img src="/bg-shrine.webp" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" style={{ filter: "brightness(0.35) saturate(0.7)" }} />
       <div className="absolute inset-x-0 bottom-0 z-[1] h-[50%]" style={{ background: "linear-gradient(to bottom, transparent, rgba(26,26,46,0.97) 60%)" }} />
 
       {/* シナコ全身表示（御簾なし、fade-in） */}
@@ -171,7 +171,7 @@ function ReunionHome({ data }: { data: HomeData }) {
 
   return (
     <div className="relative h-[calc(100dvh-64px)] w-full overflow-hidden" style={{ maxWidth: 448, margin: "0 auto" }}>
-      <img src="/bg-shrine.png" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" style={{ filter: "brightness(0.4) saturate(0.8)" }} />
+      <img src="/bg-shrine.webp" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" style={{ filter: "brightness(0.4) saturate(0.8)" }} />
       <div className="absolute inset-x-0 bottom-0 z-[1] h-[45%]" style={{ background: "linear-gradient(to bottom, transparent, rgba(26,26,46,0.95) 70%)" }} />
 
       {/* 上部バー */}

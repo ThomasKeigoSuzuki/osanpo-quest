@@ -14,12 +14,11 @@ export async function generateItemImage(
 ): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    console.warn("[generateItemImage] OPENAI_API_KEY not set, skipping");
+    // OPENAI_API_KEY not set
     return null;
   }
 
   const prompt = `${BASE_STYLE} The item is: ${imagePromptHint}`;
-  console.log(`[generateItemImage] Generating for item ${itemId}...`);
 
   try {
     const response = await fetch("https://api.openai.com/v1/images/generations", {
@@ -51,7 +50,6 @@ export async function generateItemImage(
       return null;
     }
 
-    console.log(`[generateItemImage] Image generated, uploading to Storage...`);
     const imageBuffer = Buffer.from(b64, "base64");
 
     const serviceClient = await createServiceClient();
@@ -73,7 +71,6 @@ export async function generateItemImage(
       data: { publicUrl },
     } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
 
-    console.log(`[generateItemImage] Upload complete: ${publicUrl}`);
     return publicUrl;
   } catch (err) {
     console.error("[generateItemImage] Unexpected error:", err);
@@ -90,12 +87,10 @@ export async function generateGodImage(
 ): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    console.warn("[generateGodImage] OPENAI_API_KEY not set, skipping");
     return null;
   }
 
   const prompt = `Anime-style character portrait of a Japanese local deity. ${appearance}. Soft watercolor background. Modern anime gacha game illustration style like Mahjong Soul. Upper body portrait, high quality.`;
-  console.log(`[generateGodImage] Generating for god ${godId}...`);
 
   try {
     const response = await fetch("https://api.openai.com/v1/images/generations", {
@@ -127,7 +122,6 @@ export async function generateGodImage(
       return null;
     }
 
-    console.log(`[generateGodImage] Image generated, uploading to Storage...`);
     const imageBuffer = Buffer.from(b64, "base64");
 
     const serviceClient = await createServiceClient();
@@ -149,7 +143,6 @@ export async function generateGodImage(
       data: { publicUrl },
     } = serviceClient.storage.from("item-images").getPublicUrl(filePath);
 
-    console.log(`[generateGodImage] Upload complete: ${publicUrl}`);
     return publicUrl;
   } catch (err) {
     console.error("[generateGodImage] Unexpected error:", err);
