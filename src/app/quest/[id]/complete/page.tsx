@@ -114,7 +114,7 @@ function CompleteContent() {
   }
 
   useEffect(() => {
-    if (!item) return;
+    if (!itemStr) return;
     const timers = [
       setTimeout(() => { setShowFlash(true); setStage(1); }, 300),
       setTimeout(() => setStage(2), 1200),
@@ -124,7 +124,7 @@ function CompleteContent() {
       setTimeout(() => setStage(5), 3000),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [item]);
+  }, [itemStr]);
 
   if (!item) {
     return (
