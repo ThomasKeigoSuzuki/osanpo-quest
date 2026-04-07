@@ -24,33 +24,41 @@ export default async function HomePage() {
   let displayName: string | undefined;
 
   if (user) {
-    const { data: p } = await supabase.from("users").select("display_name, total_quests_completed, login_streak").eq("id", user.id).single();
-    totalQuests = p?.total_quests_completed ?? 0;
-    streak = p?.login_streak ?? 0;
-    displayName = p?.display_name;
-
-    const { data: aq } = await supabase.from("quests").select("id").eq("user_id", user.id).eq("status", "active").limit(1).single();
-    activeQuest = aq;
-
-    const { count } = await supabase.from("items").select("*", { count: "exact", head: true }).eq("user_id", user.id);
-    itemCount = count ?? 0;
-
-    const { data: areaData } = await supabase.from("quests").select("start_area_name").eq("user_id", user.id).eq("status", "completed");
-    areaCount = areaData ? new Set(areaData.map((q) => q.start_area_name)).size : 0;
-
     const today = getTodayDateString();
-    const { data: daily } = await supabase.from("daily_quests").select("completed").eq("user_id", user.id).eq("quest_date", today).single();
-    dailyCompleted = daily?.completed ?? false;
 
-    const { data: bond } = await supabase.from("god_bonds").select("bond_exp").eq("user_id", user.id).eq("god_name", "シナコ").single();
-    if (bond) { const bl = getBondLevel(bond.bond_exp); shinakoBondLevel = bl.level; if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name }; }
+    // 全クエリを並列実行（usersテーブルは1回に統合）
+    const [profileRes, questRes, itemCountRes, areaRes, dailyRes, bondRes] = await Promise.all([
+      supabase.from("users").select("display_name, total_quests_completed, login_streak, rank_points, shinako_revealed, last_home_visit_at").eq("id", user.id).single(),
+      supabase.from("quests").select("id").eq("user_id", user.id).eq("status", "active").limit(1).single(),
+      supabase.from("items").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("quests").select("start_area_name").eq("user_id", user.id).eq("status", "completed"),
+      supabase.from("daily_quests").select("completed").eq("user_id", user.id).eq("quest_date", today).single(),
+      supabase.from("god_bonds").select("bond_exp").eq("user_id", user.id).eq("god_name", "シナコ").single(),
+    ]);
 
-    const { data: rp } = await supabase.from("users").select("rank_points, shinako_revealed, last_home_visit_at").eq("id", user.id).single();
-    if (rp) {
-      rankInfo = getRank(rp.rank_points);
-      shinakoRevealed = rp.shinako_revealed ?? false;
-      lastHomeVisitAt = rp.last_home_visit_at ?? null;
+    if (profileRes.data) {
+      const p = profileRes.data;
+      totalQuests = p.total_quests_completed ?? 0;
+      streak = p.login_streak ?? 0;
+      displayName = p.display_name;
+      rankInfo = getRank(p.rank_points ?? 0);
+      shinakoRevealed = p.shinako_revealed ?? false;
+      lastHomeVisitAt = p.last_home_visit_at ?? null;
     }
+
+    activeQuest = questRes.data;
+    itemCount = itemCountRes.count ?? 0;
+    areaCount = areaRes.data ? new Set(areaRes.data.map((q) => q.start_area_name)).size : 0;
+    dailyCompleted = dailyRes.data?.completed ?? false;
+
+    if (bondRes.data) {
+      const bl = getBondLevel(bondRes.data.bond_exp);
+      shinakoBondLevel = bl.level;
+      if (bl.level >= 2) shinakoBond = { level: bl.level, name: bl.name };
+    }
+
+    // last_home_visit_at をサーバーサイドで更新（レスポンスを待たない）
+    supabase.from("users").update({ last_home_visit_at: new Date().toISOString() }).eq("id", user.id).then(() => {});
   }
 
   const dailyConfig = getDailyQuestConfig();

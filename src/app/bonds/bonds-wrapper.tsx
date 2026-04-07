@@ -89,7 +89,7 @@ export function BondsWrapper({ bonds }: { bonds: Bond[] }) {
             return (
               <button key={bond.id} onClick={() => setSelected(bond)} className="card-glass flex w-full items-center gap-4 p-4 text-left transition active:scale-[0.99]">
                 {bond.god_image_url || bond.god_type === "wanderer" ? (
-                  <img src={bond.god_type === "wanderer" ? "/shinako-face.png" : bond.god_image_url!} alt={bond.god_name} className="h-14 w-14 shrink-0 rounded-full object-cover" style={{ border: `${Math.min(4, bl.level)}px solid var(--color-gold)` }} />
+                  <img src={bond.god_type === "wanderer" ? "/shinako-face.webp" : bond.god_image_url!} alt={bond.god_name} className="h-14 w-14 shrink-0 rounded-full object-cover" style={{ border: `${Math.min(4, bl.level)}px solid var(--color-gold)` }} />
                 ) : (
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full" style={{ background: "var(--color-card)", border: `${Math.min(4, bl.level)}px solid var(--color-gold)` }}>
                     <span className="text-xl font-bold text-[var(--color-gold)]">{bond.god_name.charAt(0)}</span>
@@ -151,7 +151,7 @@ export function BondsWrapper({ bonds }: { bonds: Bond[] }) {
                 /* ===== 絆タブ ===== */
                 <div className="flex flex-col items-center">
                   {selected.god_image_url || selected.god_type === "wanderer" ? (
-                    <img src={selected.god_type === "wanderer" ? "/shinako-face.png" : selected.god_image_url!} alt={selected.god_name} className="h-24 w-24 rounded-full object-cover" style={{ border: "3px solid var(--color-gold)" }} />
+                    <img src={selected.god_type === "wanderer" ? "/shinako-face.webp" : selected.god_image_url!} alt={selected.god_name} className="h-24 w-24 rounded-full object-cover" style={{ border: "3px solid var(--color-gold)" }} />
                   ) : (
                     <div className="flex h-24 w-24 items-center justify-center rounded-full" style={{ background: "var(--color-card)", border: "3px solid var(--color-gold)" }}>
                       <span className="text-3xl font-bold text-[var(--color-gold)]">{selected.god_name.charAt(0)}</span>
@@ -191,7 +191,7 @@ export function BondsWrapper({ bonds }: { bonds: Bond[] }) {
                   <div className="mx-auto mb-4 h-[200px] w-[200px] overflow-hidden rounded-xl" style={{ border: "1px solid rgba(232,184,73,0.3)" }}>
                     <MisuOverlay
                       stage={rs}
-                      characterSrc={selected.god_type === "wanderer" ? "/shinako-full.png" : (selected.god_image_url || "/shinako-face.png")}
+                      characterSrc={selected.god_type === "wanderer" ? "/shinako-full.webp" : (selected.god_image_url || "/shinako-face.webp")}
                       characterAlt={selected.god_name}
                       type={selected.god_type === "wanderer" ? "shinako" : "local"}
                     />

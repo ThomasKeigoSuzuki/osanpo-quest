@@ -64,7 +64,7 @@ export function HomeOfferingButton() {
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95">
         <div className="relative mx-auto h-[300px] w-[260px] overflow-hidden rounded-2xl" style={{ border: "2px solid var(--color-gold)", boxShadow: "0 0 60px rgba(232,184,73,0.4)" }}>
-          <MisuOverlay stage={misuStage} characterSrc="/shinako-full.png" characterAlt="シナコ" type="shinako" />
+          <MisuOverlay stage={misuStage} characterSrc="/shinako-full.webp" characterAlt="シナコ" type="shinako" />
         </div>
         <p className="font-wafuu mt-6 text-xl font-bold text-gold animate-[starGlow_1.5s_ease-in-out_infinite]">✨ シナコが姿を現した！</p>
         <p className="mt-3 max-w-[280px] text-center text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
@@ -87,7 +87,7 @@ export function HomeOfferingButton() {
       {showModal && (
         <div className="fixed inset-0 z-[100] flex flex-col" onClick={() => phase === "select" && setShowModal(false)}>
           {/* 背景: 神社画像 + 暗いオーバーレイ */}
-          <img src="/bg-shrine.png" alt="" className="absolute inset-0 h-full w-full object-cover" style={{ filter: "brightness(0.15) saturate(0.5)" }} />
+          <img src="/bg-shrine.webp" alt="" className="absolute inset-0 h-full w-full object-cover" style={{ filter: "brightness(0.15) saturate(0.5)" }} />
           <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center top, rgba(232,184,73,0.08) 0%, transparent 60%)" }} />
 
           <div className="relative z-10 flex flex-1 flex-col" onClick={(e) => e.stopPropagation()}>
@@ -98,7 +98,7 @@ export function HomeOfferingButton() {
               <div className="mb-4 mr-3 h-1.5 w-1.5 rounded-full animate-[glow_3s_ease-in-out_infinite]" style={{ background: "var(--color-gold)", boxShadow: "0 0 12px 4px rgba(232,184,73,0.6)" }} />
 
               <div className="h-[150px] w-[130px] overflow-hidden rounded-lg" style={{ border: "1px solid rgba(232,184,73,0.4)", boxShadow: "0 0 24px rgba(232,184,73,0.15)" }}>
-                <MisuOverlay stage={1} characterSrc="/shinako-full.png" characterAlt="シナコ" type="shinako" />
+                <MisuOverlay stage={1} characterSrc="/shinako-full.webp" characterAlt="シナコ" type="shinako" />
               </div>
 
               {/* 右の燭台光 */}

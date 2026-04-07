@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { introDialogues, getFirstVisitOfDayDialogue, getReturningSameDayDialogue } from "@/lib/shinako-dialogue";
 
-const SHINAKO_IMG = "/shinako-full.png";
+const SHINAKO_IMG = "/shinako-full.webp";
 
 type HomeData = {
   isFirstTime: boolean;
@@ -167,11 +167,6 @@ function ReunionHome({ data }: { data: HomeData }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  // last_home_visit_at を更新（判定後に1回だけ）
-  useEffect(() => {
-    fetch("/api/daily/home-visit", { method: "POST" }).catch(() => {});
-  }, []);
-
   const { rankInfo, totalQuests, itemCount, areaCount, streak, shinakoBond, dailyCompleted, dailyConfig, mainBonus, activeQuest } = data;
 
   return (
@@ -224,7 +219,7 @@ function ReunionHome({ data }: { data: HomeData }) {
       {/* 御簾画像（巻き上げアニメーション） */}
       {phase !== "ready" && (
         <img
-          src="/misu.png"
+          src="/misu.webp"
           alt=""
           className="pointer-events-none absolute left-1/2 z-[6] -translate-x-1/2"
           style={{

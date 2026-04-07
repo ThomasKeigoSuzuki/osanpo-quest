@@ -67,7 +67,7 @@ export function MisuOverlay({
       {/* 2. 御簾画像（中間） */}
       {s < 5 && (
         <img
-          src="/misu.png"
+          src="/misu.webp"
           alt=""
           className="pointer-events-none absolute h-full w-full object-cover"
           style={{

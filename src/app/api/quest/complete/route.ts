@@ -22,303 +22,157 @@ type ItemGeneration = {
   image_prompt_hint?: string;
 };
 
+const VALID_CATEGORIES = ["nature", "food", "craft", "mystery", "memory", "divine", "material", "local", "crafted", "treasure"];
+
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    const { quest_id, lat, lng } = await request.json() as { quest_id: string; lat: number; lng: number };
+    if (!isValidUUID(quest_id)) return NextResponse.json({ error: "Invalid quest_id" }, { status: 400 });
+    if (!isValidLatLng(lat, lng)) return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
 
-  const body = await request.json();
-  const { quest_id, lat, lng } = body as {
-    quest_id: string;
-    lat: number;
-    lng: number;
-  };
+    const { data: quest } = await supabase.from("quests").select("*").eq("id", quest_id).eq("user_id", user.id).eq("status", "active").single();
+    if (!quest) return NextResponse.json({ error: "Active quest not found" }, { status: 404 });
 
-  if (!isValidUUID(quest_id)) {
-    return NextResponse.json({ error: "Invalid quest_id" }, { status: 400 });
-  }
-  if (!isValidLatLng(lat, lng)) {
-    return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
-  }
+    if (!isQuestComplete(lat, lng, quest.goal_lat, quest.goal_lng, quest.goal_radius_meters)) {
+      return NextResponse.json({ success: false, error: "Not within goal radius" });
+    }
 
-  const { data: quest } = await supabase
-    .from("quests")
-    .select("*")
-    .eq("id", quest_id)
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .single();
+    // --- Phase 1: アイテム生成（Claude API） ---
+    const itemPrompt = buildItemGenerationPrompt(quest.god_name, quest.god_type, quest.mission_text, quest.mission_type, quest.start_area_name);
+    const itemResponse = await generateSimple(itemPrompt);
+    const itemData = extractJSON<ItemGeneration>(itemResponse);
+    const safeCategory = VALID_CATEGORIES.includes(itemData.category) ? itemData.category : "mystery";
 
-  if (!quest) {
-    return NextResponse.json(
-      { error: "Active quest not found" },
-      { status: 404 }
-    );
-  }
-
-  const complete = isQuestComplete(
-    lat,
-    lng,
-    quest.goal_lat,
-    quest.goal_lng,
-    quest.goal_radius_meters
-  );
-
-  if (!complete) {
-    return NextResponse.json({
-      success: false,
-      error: "Not within goal radius",
-    });
-  }
-
-  const itemPrompt = buildItemGenerationPrompt(
-    quest.god_name,
-    quest.god_type,
-    quest.mission_text,
-    quest.mission_type,
-    quest.start_area_name
-  );
-  const itemResponse = await generateSimple(itemPrompt);
-  const itemData = extractJSON<ItemGeneration>(itemResponse);
-
-  const VALID_CATEGORIES = ["nature", "food", "craft", "mystery", "memory", "divine", "material", "local", "crafted", "treasure"];
-  const safeCategory = VALID_CATEGORIES.includes(itemData.category) ? itemData.category : "mystery";
-
-  const { data: item, error: itemError } = await supabase
-    .from("items")
-    .insert({
-      user_id: user.id,
-      quest_id: quest_id,
-      name: itemData.name,
-      description: itemData.description,
-      category: safeCategory,
-      sub_category: itemData.sub_category || null,
+    const { data: item, error: itemError } = await supabase.from("items").insert({
+      user_id: user.id, quest_id, name: itemData.name, description: itemData.description,
+      category: safeCategory, sub_category: itemData.sub_category || null,
       area_name: quest.god_type === "local" ? quest.start_area_name : null,
-      god_name: quest.god_name,
-      rarity: Math.min(5, Math.max(1, itemData.rarity)), // ストリークボーナスは後で加算
-    })
-    .select()
-    .single();
+      god_name: quest.god_name, rarity: Math.min(5, Math.max(1, itemData.rarity)),
+    }).select().single();
 
-  if (itemError || !item) {
-    console.error("[quest/complete] Item insert failed:", itemError, "itemData:", itemData);
-    return NextResponse.json(
-      { error: `Failed to create item: ${itemError?.message || "unknown"}` },
-      { status: 500 }
-    );
-  }
+    if (itemError || !item) {
+      return NextResponse.json({ error: `Failed to create item: ${itemError?.message || "unknown"}` }, { status: 500 });
+    }
 
-  // デイリークエストの場合: 完了+ストリークボーナス
-  const { data: dailyRecord } = await supabase
-    .from("daily_quests")
-    .select("id")
-    .eq("quest_id", quest_id)
-    .eq("user_id", user.id)
-    .single();
+    // --- Phase 2: 並列処理（画像生成 + メッセージ生成 + DB取得） ---
+    const messagePrompt = buildCompletionMessagePrompt(quest.god_name, quest.god_type, quest.mission_text, itemData.name);
 
-  if (dailyRecord) {
-    await supabase
-      .from("daily_quests")
-      .update({ completed: true })
-      .eq("id", dailyRecord.id);
+    const [imageUrl, godMessage, dailyRes, profileRes, bondRes] = await Promise.all([
+      // 画像生成（失敗してもnull）
+      itemData.image_prompt_hint
+        ? generateItemImage(itemData.image_prompt_hint, item.id).then(async (url) => {
+            if (url) await supabase.from("items").update({ image_url: url }).eq("id", item.id);
+            return url;
+          })
+        : Promise.resolve(null),
+      // 完了メッセージ
+      generateSimple(messagePrompt),
+      // デイリークエスト確認
+      supabase.from("daily_quests").select("id").eq("quest_id", quest_id).eq("user_id", user.id).single(),
+      // ユーザープロフィール（1回で全フィールド取得）
+      supabase.from("users").select("total_quests_completed, shinako_reveal_stage, shinako_revealed, rank_points, adventurer_rank, login_streak").eq("id", user.id).single(),
+      // 絆情報
+      supabase.from("god_bonds").select("bond_exp, total_quests, bond_level").eq("user_id", user.id).eq("god_name", quest.god_name).single(),
+    ]);
 
-    // ストリークボーナスでレアリティを上げる
-    const { data: userStreak } = await supabase
-      .from("users")
-      .select("login_streak")
-      .eq("id", user.id)
-      .single();
-
-    if (userStreak) {
-      const bonus = getStreakBonus(userStreak.login_streak);
-      if (bonus.rarityBonus > 0) {
-        const newRarity = Math.min(5, item.rarity + bonus.rarityBonus);
-        if (newRarity > item.rarity) {
-          await supabase.from("items").update({ rarity: newRarity } as Record<string, unknown>).eq("id", item.id);
-          item.rarity = newRarity;
+    // --- Phase 3: デイリーボーナス処理 ---
+    const dailyRecord = dailyRes.data;
+    if (dailyRecord) {
+      await supabase.from("daily_quests").update({ completed: true }).eq("id", dailyRecord.id);
+      if (profileRes.data) {
+        const bonus = getStreakBonus(profileRes.data.login_streak);
+        if (bonus.rarityBonus > 0) {
+          const newRarity = Math.min(5, item.rarity + bonus.rarityBonus);
+          if (newRarity > item.rarity) {
+            await supabase.from("items").update({ rarity: newRarity } as Record<string, unknown>).eq("id", item.id);
+            item.rarity = newRarity;
+          }
         }
       }
     }
-  }
 
-  let imageUrl = item.image_url;
-  let imageDebug = "";
-  if (itemData.image_prompt_hint) {
-    imageDebug = "prompt_hint exists, calling generateItemImage...";
-    const generatedUrl = await generateItemImage(
-      itemData.image_prompt_hint,
-      item.id
-    );
-    if (generatedUrl) {
-      imageUrl = generatedUrl;
-      imageDebug += ` success: ${generatedUrl.slice(0, 80)}`;
-      await supabase
-        .from("items")
-        .update({ image_url: generatedUrl })
-        .eq("id", item.id);
+    // --- Phase 4: プロフィール・絆・ランク更新（並列） ---
+    const profile = profileRes.data;
+    let shinakoReveal: { new_stage: number; message: string } | null = null;
+    let bondLeveledUp = false;
+    let bondNewLevel = 1;
+    let bondLevelName = "出会い";
+
+    // 絆処理
+    const existingBond = bondRes.data;
+    if (existingBond) {
+      const newExp = existingBond.bond_exp + 1;
+      const bl = getBondLevel(newExp);
+      bondNewLevel = bl.level;
+      bondLevelName = bl.name;
+      bondLeveledUp = bl.level > existingBond.bond_level;
     } else {
-      imageDebug += " generateItemImage returned null";
+      const bl = getBondLevel(1);
+      bondNewLevel = bl.level;
+      bondLevelName = bl.name;
     }
-  } else {
-    imageDebug = "no image_prompt_hint in itemData";
-  }
 
-  await supabase
-    .from("quests")
-    .update({
-      status: "completed",
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", quest_id);
+    // ランク計算
+    let pointsGained = getPointsForAction("quest_clear");
+    if (dailyRecord) pointsGained += getPointsForAction("daily_clear") - getPointsForAction("quest_clear");
+    if (!existingBond) pointsGained += getPointsForAction("new_god");
+    if (bondLeveledUp) pointsGained += getPointsForAction("bond_level_up");
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("total_quests_completed, shinako_reveal_stage, shinako_revealed")
-    .eq("id", user.id)
-    .single();
+    const oldRank = profile?.adventurer_rank ?? 1;
+    const newTotalPoints = (profile?.rank_points ?? 0) + pointsGained;
+    const newRankInfo = getRank(newTotalPoints);
+    const rankedUp = newRankInfo.rank > oldRank;
 
-  let shinakoReveal: { new_stage: number; message: string } | null = null;
-
-  if (profile) {
-    const newTotal = profile.total_quests_completed + 1;
+    // シナコ御簾計算
+    const newTotal = (profile?.total_quests_completed ?? 0) + 1;
     const newRevealStage = getShinakoRevealStage(newTotal);
-    const oldRevealStage = profile.shinako_reveal_stage ?? 1;
+    const oldRevealStage = profile?.shinako_reveal_stage ?? 1;
+    if (newRevealStage > oldRevealStage) {
+      shinakoReveal = { new_stage: newRevealStage, message: getShinakoRevealMessage(newRevealStage) };
+    }
 
-    await supabase
-      .from("users")
-      .update({
+    // DB更新を並列実行
+    await Promise.all([
+      // クエスト完了
+      supabase.from("quests").update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", quest_id),
+      // ユーザー更新（1回に統合）
+      supabase.from("users").update({
         total_quests_completed: newTotal,
         shinako_reveal_stage: newRevealStage,
+        rank_points: newTotalPoints,
+        adventurer_rank: newRankInfo.rank,
         updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+      }).eq("id", user.id),
+      // 絆更新
+      existingBond
+        ? supabase.from("god_bonds").update({
+            bond_exp: existingBond.bond_exp + 1, total_quests: existingBond.total_quests + 1,
+            bond_level: bondNewLevel, last_quest_at: new Date().toISOString(),
+          }).eq("user_id", user.id).eq("god_name", quest.god_name)
+        : supabase.from("god_bonds").insert({
+            user_id: user.id, god_name: quest.god_name, god_type: quest.god_type,
+            bond_exp: 1, total_quests: 1, last_quest_at: new Date().toISOString(),
+            god_image_url: quest.god_type === "wanderer" ? "/shinako-full.webp" : null,
+          }),
+    ]);
 
-    if (newRevealStage > oldRevealStage) {
-      shinakoReveal = {
-        new_stage: newRevealStage,
-        message: getShinakoRevealMessage(newRevealStage),
-      };
-    }
-  }
-
-  // 絆経験値の加算
-  const { data: existingBond } = await supabase
-    .from("god_bonds")
-    .select("bond_exp, total_quests, bond_level")
-    .eq("user_id", user.id)
-    .eq("god_name", quest.god_name)
-    .single();
-
-  let bondLeveledUp = false;
-  let bondNewLevel = 1;
-  let bondLevelName = "出会い";
-
-  if (existingBond) {
-    const newExp = existingBond.bond_exp + 1;
-    const newTotal = existingBond.total_quests + 1;
-    const bl = getBondLevel(newExp);
-    bondNewLevel = bl.level;
-    bondLevelName = bl.name;
-    bondLeveledUp = bl.level > existingBond.bond_level;
-
-    await supabase
-      .from("god_bonds")
-      .update({
-        bond_exp: newExp,
-        total_quests: newTotal,
-        bond_level: bl.level,
-        last_quest_at: new Date().toISOString(),
-      })
-      .eq("user_id", user.id)
-      .eq("god_name", quest.god_name);
-  } else {
-    // 初遭遇
-    await supabase.from("god_bonds").insert({
-      user_id: user.id,
-      god_name: quest.god_name,
-      god_type: quest.god_type,
-      bond_exp: 1,
-      total_quests: 1,
-      last_quest_at: new Date().toISOString(),
-      god_image_url: quest.god_type === "wanderer" ? "/shinako-full.png" : null,
+    return NextResponse.json({
+      success: true,
+      item: { id: item.id, name: item.name, description: item.description, category: item.category, image_url: imageUrl ?? item.image_url, rarity: item.rarity },
+      god_message: godMessage.replace(/^["']|["']$/g, "").trim(),
+      bond_info: { god_name: quest.god_name, new_level: bondNewLevel, level_name: bondLevelName, leveled_up: bondLeveledUp },
+      rank_info: { points_gained: pointsGained, total_points: newTotalPoints, rank: newRankInfo.rank, rank_name: newRankInfo.name, rank_icon: newRankInfo.icon, ranked_up: rankedUp },
+      shinako_reveal: shinakoReveal,
+      tutorial_offering: profile && !profile.shinako_revealed,
     });
-    const bl = getBondLevel(1);
-    bondNewLevel = bl.level;
-    bondLevelName = bl.name;
-  }
-
-  // ランクポイント加算
-  let pointsGained = getPointsForAction("quest_clear");
-  if (dailyRecord) pointsGained += getPointsForAction("daily_clear") - getPointsForAction("quest_clear"); // dailyは3pt（差分で+1）
-  if (!existingBond) pointsGained += getPointsForAction("new_god");
-  if (bondLeveledUp) pointsGained += getPointsForAction("bond_level_up");
-
-  const { data: rankProfile } = await supabase
-    .from("users")
-    .select("rank_points, adventurer_rank")
-    .eq("id", user.id)
-    .single();
-
-  const oldRank = rankProfile?.adventurer_rank ?? 1;
-  const newTotalPoints = (rankProfile?.rank_points ?? 0) + pointsGained;
-  const newRankInfo = getRank(newTotalPoints);
-  const rankedUp = newRankInfo.rank > oldRank;
-
-  await supabase
-    .from("users")
-    .update({ rank_points: newTotalPoints, adventurer_rank: newRankInfo.rank })
-    .eq("id", user.id);
-
-  const messagePrompt = buildCompletionMessagePrompt(
-    quest.god_name,
-    quest.god_type,
-    quest.mission_text,
-    itemData.name
-  );
-  const godMessage = await generateSimple(messagePrompt);
-
-  return NextResponse.json({
-    success: true,
-    item: {
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      category: item.category,
-      image_url: imageUrl,
-      rarity: item.rarity,
-    },
-    god_message: godMessage.replace(/^["']|["']$/g, "").trim(),
-    bond_info: {
-      god_name: quest.god_name,
-      new_level: bondNewLevel,
-      level_name: bondLevelName,
-      leveled_up: bondLeveledUp,
-    },
-    rank_info: {
-      points_gained: pointsGained,
-      total_points: newTotalPoints,
-      rank: newRankInfo.rank,
-      rank_name: newRankInfo.name,
-      rank_icon: newRankInfo.icon,
-      ranked_up: rankedUp,
-    },
-    shinako_reveal: shinakoReveal,
-    tutorial_offering: profile && !profile.shinako_revealed,
-    _debug_image: imageDebug,
-  });
   } catch (err) {
-    console.error("[quest/complete] Unhandled error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[quest/complete]", err);
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
   }
 }
