@@ -106,8 +106,9 @@ export async function POST(request: Request) {
     .single();
 
   if (itemError || !item) {
+    console.error("[quest/complete] Item insert failed:", itemError, "itemData:", itemData);
     return NextResponse.json(
-      { error: "Failed to create item" },
+      { error: `Failed to create item: ${itemError?.message || "unknown"}` },
       { status: 500 }
     );
   }
