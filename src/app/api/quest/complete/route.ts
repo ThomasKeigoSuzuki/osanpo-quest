@@ -68,9 +68,9 @@ export async function POST(request: Request) {
       itemData.image_prompt_hint
         ? generateItemImage(itemData.image_prompt_hint, item.id).then(async (url) => {
             if (url) await supabase.from("items").update({ image_url: url }).eq("id", item.id);
-            return url;
-          })
-        : Promise.resolve(null),
+            return { url, error: null };
+          }).catch((e) => ({ url: null, error: String(e) }))
+        : Promise.resolve({ url: null, error: "no_hint" }),
       // 完了メッセージ
       generateSimple(messagePrompt),
       // デイリークエスト確認
@@ -164,7 +164,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      item: { id: item.id, name: item.name, description: item.description, category: item.category, image_url: imageUrl ?? item.image_url, rarity: item.rarity },
+      item: { id: item.id, name: item.name, description: item.description, category: item.category, image_url: (imageUrl as { url: string | null }).url ?? item.image_url, rarity: item.rarity },
+      _img_debug: (imageUrl as { error: string | null }).error,
       god_message: godMessage.replace(/^["']|["']$/g, "").trim(),
       bond_info: { god_name: quest.god_name, new_level: bondNewLevel, level_name: bondLevelName, leveled_up: bondLeveledUp },
       rank_info: { points_gained: pointsGained, total_points: newTotalPoints, rank: newRankInfo.rank, rank_name: newRankInfo.name, rank_icon: newRankInfo.icon, ranked_up: rankedUp },
