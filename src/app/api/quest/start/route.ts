@@ -112,6 +112,18 @@ export async function POST(request: Request) {
       godName = existingGod.god_name;
       localGodId = existingGod.id;
       godImageUrl = existingGod.image_url;
+
+      // 画像未生成の既存神にリトライ
+      if (!godImageUrl) {
+        try {
+          const appearance = `A deity named ${existingGod.god_name} from ${existingGod.area_name}. ${existingGod.personality}`;
+          const url = await generateGodImage(appearance, existingGod.id);
+          if (url) {
+            godImageUrl = url;
+            await serviceClient.from("local_gods").update({ image_url: url }).eq("id", existingGod.id);
+          }
+        } catch {}
+      }
     } else {
       // Claude APIでご当地神を生成
       const godPrompt = buildLocalGodGenerationPrompt(
