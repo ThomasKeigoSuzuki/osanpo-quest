@@ -29,6 +29,7 @@ export default function QuestProgressPage() {
   const router = useRouter();
 
   const [quest, setQuest] = useState<QuestData | null>(null);
+  const isTutorialQuest = quest ? quest.goal_radius_meters >= 9999 : false;
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [isInRange, setIsInRange] = useState(false);
@@ -86,8 +87,12 @@ export default function QuestProgressPage() {
         setGeoError("");
         const np = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserPos(np); setRoutePoints((p) => [...p, np]);
-        const d = getDistanceMeters(np.lat, np.lng, quest.goal_lat, quest.goal_lng);
-        setDistance(Math.round(d)); setIsInRange(d <= quest.goal_radius_meters);
+        if (quest.goal_radius_meters >= 9999) {
+          setDistance(0); setIsInRange(true);
+        } else {
+          const d = getDistanceMeters(np.lat, np.lng, quest.goal_lat, quest.goal_lng);
+          setDistance(Math.round(d)); setIsInRange(d <= quest.goal_radius_meters);
+        }
         routeBuffer.current.push({ ...np, timestamp: new Date().toISOString() });
       },
       (e) => setGeoError(e.code === 1 ? "位置情報が許可されていません" : e.code === 2 ? "GPSを確認してください" : "タイムアウトしました"),
@@ -108,14 +113,15 @@ export default function QuestProgressPage() {
   }, [quest, id]);
 
   const handleComplete = useCallback(async () => {
-    if (!userPos || !isInRange || completing) return;
+    const pos = userPos || (isTutorialQuest && quest ? { lat: quest.goal_lat, lng: quest.goal_lng } : null);
+    if (!pos || (!isInRange && !isTutorialQuest) || completing) return;
     setCompleting(true); setError("");
     try {
       if (routeBuffer.current.length > 0) {
         await fetch("/api/quest/update-route", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quest_id: id, positions: routeBuffer.current }) }).catch(() => {});
         routeBuffer.current = [];
       }
-      const res = await fetch("/api/quest/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quest_id: id, lat: userPos.lat, lng: userPos.lng }) });
+      const res = await fetch("/api/quest/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quest_id: id, lat: pos.lat, lng: pos.lng }) });
       if (!res.ok) throw new Error();
       const data = await res.json();
       if (data.success) {
@@ -128,7 +134,7 @@ export default function QuestProgressPage() {
       }
       else { setError(data.error || "クリア判定に失敗"); setCompleting(false); }
     } catch { setError("通信エラーです"); setCompleting(false); }
-  }, [userPos, isInRange, completing, id, router]);
+  }, [userPos, isInRange, isTutorialQuest, completing, id, router, quest]);
 
   const handleAbandon = useCallback(async () => {
     if (abandoning || !confirm("クエストを放棄しますか？")) return;
@@ -217,6 +223,15 @@ export default function QuestProgressPage() {
             <p className="mt-4 text-sm text-[var(--color-text-sub)]">{geoError}</p>
             <button onClick={() => { setGeoError(""); setQuest({ ...quest }); }} className="btn-secondary mt-4">位置情報を再取得</button>
           </div>
+        ) : isTutorialQuest ? (
+          /* チュートリアル: マップ不要、即クリア可能 */
+          <div className="text-center px-8">
+            <p className="text-4xl">🌟</p>
+            <p className="mt-4 text-sm font-bold text-gold">ミッションを達成しよう</p>
+            <p className="mt-2 text-xs" style={{ color: "var(--color-text-sub)" }}>
+              移動は不要です。上のミッション内容を確認して、達成したら下のボタンを押してください。
+            </p>
+          </div>
         ) : userPos ? (
           <>
             <MiniMap lat={userPos.lat} lng={userPos.lng} bearing={bearing} distance={distance} direction={bearingToDir(bearing)} isInRange={isInRange} routePoints={routePoints} />
@@ -239,12 +254,12 @@ export default function QuestProgressPage() {
       {/* ボタン */}
       <div className="px-4 pb-6 safe-bottom">
         {error && <p className="mb-3 text-center text-sm text-[var(--color-danger)]" role="alert">{error}</p>}
-        <button onClick={handleComplete} disabled={!isInRange || completing}
+        <button onClick={handleComplete} disabled={(!isInRange && !isTutorialQuest) || completing}
           className={`min-h-[52px] w-full rounded-xl text-center text-lg font-bold transition active:scale-[0.97] ${
-            isInRange ? "btn-primary" : "cursor-not-allowed rounded-xl bg-[rgba(255,255,255,0.08)] py-3.5 text-[var(--color-text-muted)]"
+            (isInRange || isTutorialQuest) ? "btn-primary" : "cursor-not-allowed rounded-xl bg-[rgba(255,255,255,0.08)] py-3.5 text-[var(--color-text-muted)]"
           }`}
         >
-          {completing ? "アイテム生成中..." : isInRange ? "達成！" : "ゴールへ向かおう"}
+          {completing ? "アイテム生成中..." : isTutorialQuest ? "ミッション達成！" : isInRange ? "達成！" : "ゴールへ向かおう"}
         </button>
         <button onClick={handleAbandon} disabled={abandoning} className="btn-ghost mt-2 min-h-[44px] w-full text-xs">
           {abandoning ? "放棄中..." : "放棄する"}
