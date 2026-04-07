@@ -134,7 +134,6 @@ export default function QuestProgressPage() {
         if (data.rank_info) url += `&rank=${encodeURIComponent(JSON.stringify(data.rank_info))}`;
         if (data.shinako_reveal) url += `&reveal=${encodeURIComponent(JSON.stringify(data.shinako_reveal))}`;
         if (data.tutorial_offering) url += `&tutorial=true`;
-        if (data._img_debug) url += `&_imgd=${encodeURIComponent(data._img_debug)}`;
         router.push(url);
       }
       else { setError(data.error || "クリア判定に失敗"); setCompleting(false); }

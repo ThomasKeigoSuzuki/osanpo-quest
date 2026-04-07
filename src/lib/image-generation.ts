@@ -12,11 +12,8 @@ export async function generateItemImage(
   imagePromptHint: string,
   itemId: string
 ): Promise<string | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    // OPENAI_API_KEY not set
-    return null;
-  }
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) return null;
 
   const prompt = `${BASE_STYLE} The item is: ${imagePromptHint}`;
 
@@ -85,10 +82,8 @@ export async function generateGodImage(
   appearance: string,
   godId: string
 ): Promise<string | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return null;
-  }
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) return null;
 
   const prompt = `Anime-style character portrait of a Japanese local deity. ${appearance}. Soft watercolor background. Modern anime gacha game illustration style like Mahjong Soul. Upper body portrait, high quality.`;
 
