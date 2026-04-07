@@ -155,7 +155,7 @@ export default function QuestProgressPage() {
   function bearingToDir(b: number) { return ["北","北東","東","南東","南","南西","西","北西"][Math.round(b / 45) % 8]; }
 
   function getAvatarSrc() {
-    if (quest?.god_type === "wanderer") return "/shinako-full.webp";
+    if (quest?.god_type === "wanderer") return "/shinako-face.webp";
     return quest?.god_image_url || null;
   }
   function getPlaceholderColor(name: string) {
