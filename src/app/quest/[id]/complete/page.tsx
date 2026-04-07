@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
-import { MisuOverlay } from "@/components/misu-overlay";
+import { tutorialCompleteDialogues } from "@/lib/shinako-dialogue";
 
 type Item = {
   id: string;
@@ -51,7 +51,20 @@ function CompleteContent() {
   const [showFlash, setShowFlash] = useState(false);
   const [offeringDone, setOfferingDone] = useState(false);
   const [offeringLoading, setOfferingLoading] = useState(false);
-  const [misuStage, setMisuStage] = useState(1);
+  const [tutorialDialogueIdx, setTutorialDialogueIdx] = useState(0);
+  const [misuLowering, setMisuLowering] = useState(false);
+  const [tutorialReady, setTutorialReady] = useState(false);
+
+  // チュートリアル完了演出のタイマー管理
+  useEffect(() => {
+    if (!offeringDone || !isTutorial) return;
+    const timers = [
+      setTimeout(() => setTutorialDialogueIdx(1), 2000),
+      setTimeout(() => setMisuLowering(true), 4000),
+      setTimeout(() => setTutorialReady(true), 6200),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [offeringDone, isTutorial]);
 
   // シェアカードURL生成
   function getShareCardUrl(): string | null {
@@ -280,10 +293,6 @@ function CompleteContent() {
                       const data = await res.json();
                       if (data.success) {
                         setOfferingDone(true);
-                        // 御簾解放アニメーション
-                        setShowFlash(true);
-                        setTimeout(() => setMisuStage(5), 300);
-                        setTimeout(() => setShowFlash(false), 1500);
                       }
                     } catch {}
                     setOfferingLoading(false);
@@ -296,18 +305,58 @@ function CompleteContent() {
               )}
             </>
           ) : offeringDone ? (
-            /* 奉納完了後: 御簾解放演出 + ホームボタン */
+            /* 奉納完了後: チュートリアル完了セリフ → 御簾降下 → 続けるボタン */
             <div className="text-center">
-              <div className="mx-auto mb-4 h-[200px] w-[200px] overflow-hidden rounded-xl" style={{ border: "1px solid rgba(232,184,73,0.3)" }}>
-                <MisuOverlay stage={misuStage} characterSrc="/shinako-full.png" characterAlt="シナコ" type="shinako" />
+              {/* セリフ順次表示 */}
+              <div className="mx-auto mb-6 flex flex-col gap-3" style={{ maxWidth: 300 }}>
+                {tutorialCompleteDialogues.map((line, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl px-4 py-3"
+                    style={{
+                      background: "rgba(0,0,0,0.6)",
+                      border: "1px solid rgba(232,184,73,0.3)",
+                      opacity: i <= tutorialDialogueIdx ? 1 : 0,
+                      animation: i <= tutorialDialogueIdx ? "dialogueFadeIn 0.6s ease-out forwards" : undefined,
+                    }}
+                  >
+                    <p className="text-sm leading-relaxed text-white">「{line}」</p>
+                    <p className="mt-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>— シナコ</p>
+                  </div>
+                ))}
               </div>
-              <p className="font-wafuu text-sm font-bold text-gold animate-[starGlow_1.5s_ease-in-out_infinite]">
-                ✨ シナコが姿を現した！
-              </p>
-              <p className="mt-2 text-xs" style={{ color: "var(--color-text-sub)" }}>
-                「これがあたしよ。あんたにだけ見せてあげるんだから。…光栄に思いなさい」
-              </p>
-              <button onClick={() => router.push("/")} className="btn-primary mt-6 w-full text-center">ホームに戻る</button>
+
+              {/* 御簾降下アニメーション */}
+              {misuLowering && (
+                <div className="relative mx-auto mb-4 h-[400px] w-[300px] overflow-hidden rounded-2xl" style={{ border: "2px solid rgba(232,184,73,0.4)", boxShadow: "0 0 40px rgba(232,184,73,0.2)" }}>
+                  <img
+                    src="/shinako-full.png"
+                    alt="シナコ"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    style={{ objectPosition: "center 5%", filter: "brightness(0.8)" }}
+                  />
+                  <img
+                    src="/misu.png"
+                    alt=""
+                    className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+                    style={{
+                      objectPosition: "center top",
+                      animation: "misuLowering 2s ease-in forwards",
+                    }}
+                  />
+                </div>
+              )}
+
+              {tutorialReady && (
+                <div style={{ animation: "dialogueFadeIn 0.5s ease-out forwards" }}>
+                  <p className="font-wafuu text-sm font-bold text-gold">
+                    次に会う時は、正装で待っているわ…
+                  </p>
+                  <button onClick={() => window.location.href = "/"} className="btn-primary mt-6 w-full text-center">
+                    続ける
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             /* 通常フロー */

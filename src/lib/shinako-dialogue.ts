@@ -64,6 +64,48 @@ const BOND_DIALOGUES: Record<number, string[]> = {
   ],
 };
 
+// === 初回訪問（チュートリアル未完了）===
+export const introDialogues: string[] = [
+  "あら、新しい子ね",
+  "…まあいいわ。あたしが直々に見てあげる",
+  "でもその前に。あんたが本物かどうか、試させてもらうわよ",
+];
+
+// === チュートリアル完了時（御簾が降りる演出と共に）===
+export const tutorialCompleteDialogues: string[] = [
+  "…悪くないじゃない。合格、ってことにしといてあげる",
+  "次あたしに会いに来る時は、ちゃんと正装で待ってるから。覚悟しなさい",
+];
+
+// === 日の最初の訪問（御簾巻き上げ後）===
+export function getFirstVisitOfDayDialogue(bondLevel: number): string {
+  const byLevel = [
+    "…また来たの。まあ、待ってたわけじゃないけど",
+    "ふん、遅いじゃない",
+    "来たのね。…ちょっとだけ、嬉しいかも",
+    "お帰りなさい。今日は何をする?",
+    "ずっと待ってたわ。今日も一緒にいてくれる?",
+    "やっと来てくれた。会いたかった",
+    "おかえりなさい、あなた。今日もあたしのそばにいてね",
+  ];
+  return byLevel[Math.min(bondLevel - 1, 6)];
+}
+
+// === 同日2回目以降の訪問 ===
+export function getReturningSameDayDialogue(bondLevel: number): string {
+  const byLevel = [
+    "あら、まだいたの?",
+    "しつこいわね…嫌いじゃないけど",
+    "また来てくれたんだ",
+    "何度でも会いに来ていいのよ",
+    "あなたの顔、見られて嬉しい",
+    "こんなに頻繁に来てくれて…嬉しい",
+    "何度会っても、胸が高鳴るわ",
+  ];
+  return byLevel[Math.min(bondLevel - 1, 6)];
+}
+
+// === 通常のホーム表示用（曜日×絆レベル）===
 export function getShinakoDialogue(
   bondLevel: number,
   dayOfWeek: number,

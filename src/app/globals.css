@@ -250,6 +250,28 @@ body {
   50%      { opacity: 0.15; transform: scale(1.05); }
 }
 
+@keyframes misuRaising {
+  0%   { transform: translateY(0%); opacity: 0.7; }
+  60%  { transform: translateY(-70%); opacity: 0.5; }
+  100% { transform: translateY(-110%); opacity: 0; }
+}
+
+@keyframes misuLowering {
+  0%   { transform: translateY(-110%); opacity: 0; }
+  40%  { transform: translateY(-40%); opacity: 0.4; }
+  100% { transform: translateY(0%); opacity: 0.7; }
+}
+
+@keyframes dialogueFadeIn {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shinakoFadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 /* ===== Fonts ===== */
 .font-wafuu {
   font-family: var(--font-zen-maru), serif;
