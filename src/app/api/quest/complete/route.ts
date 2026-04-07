@@ -25,6 +25,7 @@ type ItemGeneration = {
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
@@ -301,4 +302,11 @@ export async function POST(request: Request) {
     shinako_reveal: shinakoReveal,
     tutorial_offering: profile && !profile.shinako_revealed,
   });
+  } catch (err) {
+    console.error("[quest/complete] Unhandled error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
