@@ -69,8 +69,9 @@ export function MisuOverlay({
         <img
           src="/misu.png"
           alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          className="pointer-events-none absolute h-full w-full object-cover"
           style={{
+            top: "-15%",
             objectPosition: "center top",
             transform: `translateY(${yOffset})`,
             transition: "transform 1.5s ease-in-out, opacity 0.5s ease",
