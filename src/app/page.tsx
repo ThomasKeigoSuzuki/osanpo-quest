@@ -103,7 +103,7 @@ export default async function HomePage() {
       {/* ===== シナコ (z-5) ===== */}
       <div
         className="pointer-events-none absolute left-1/2 z-[5] -translate-x-1/2"
-        style={{ top: "5%", width: "75%", maxWidth: 320, height: "55dvh" }}
+        style={{ top: "15%", width: "90%", maxWidth: 380, height: "75dvh" }}
       >
         {shinakoRevealed ? (
           <img
@@ -137,7 +137,7 @@ export default async function HomePage() {
 
       {/* 奉納ボタン / ヒント (z-20) */}
       {!shinakoRevealed && (
-        <div className="absolute left-1/2 z-20 -translate-x-1/2 text-center" style={{ top: "62%", width: "75%", maxWidth: 300 }}>
+        <div className="absolute left-1/2 z-20 -translate-x-1/2 text-center" style={{ top: "68%", width: "75%", maxWidth: 300 }}>
           {(profile?.total_quests_completed ?? 0) > 0 ? (
             <HomeOfferingButton />
           ) : (

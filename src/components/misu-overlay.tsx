@@ -74,7 +74,7 @@ export function MisuOverlay({
             objectPosition: "center top",
             transform: `translateY(${yOffset})`,
             transition: "transform 1.5s ease-in-out, opacity 0.5s ease",
-            opacity: s >= 5 ? 0 : 1,
+            opacity: s >= 5 ? 0 : 0.7,
             animation: type === "shinako" && !tapped
               ? "misuSway 5s ease-in-out infinite"
               : tapped
