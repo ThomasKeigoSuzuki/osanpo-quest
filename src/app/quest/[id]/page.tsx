@@ -122,8 +122,12 @@ export default function QuestProgressPage() {
         routeBuffer.current = [];
       }
       const res = await fetch("/api/quest/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quest_id: id, lat: pos.lat, lng: pos.lng }) });
-      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || `サーバーエラー (${res.status})`);
+        setCompleting(false);
+        return;
+      }
       if (data.success) {
         let url = `/quest/${id}/complete?item=${encodeURIComponent(JSON.stringify(data.item))}&message=${encodeURIComponent(data.god_message)}`;
         if (data.bond_info) url += `&bond=${encodeURIComponent(JSON.stringify(data.bond_info))}`;
@@ -133,7 +137,7 @@ export default function QuestProgressPage() {
         router.push(url);
       }
       else { setError(data.error || "クリア判定に失敗"); setCompleting(false); }
-    } catch { setError("通信エラーです"); setCompleting(false); }
+    } catch (e) { setError(`通信エラー: ${e instanceof Error ? e.message : "不明"}`); setCompleting(false); }
   }, [userPos, isInRange, isTutorialQuest, completing, id, router, quest]);
 
   const handleAbandon = useCallback(async () => {
