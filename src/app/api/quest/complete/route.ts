@@ -89,6 +89,9 @@ export async function POST(request: Request) {
   const itemResponse = await generateSimple(itemPrompt);
   const itemData = extractJSON<ItemGeneration>(itemResponse);
 
+  const VALID_CATEGORIES = ["nature", "food", "craft", "mystery", "memory", "divine", "material", "local", "crafted", "treasure"];
+  const safeCategory = VALID_CATEGORIES.includes(itemData.category) ? itemData.category : "mystery";
+
   const { data: item, error: itemError } = await supabase
     .from("items")
     .insert({
@@ -96,7 +99,7 @@ export async function POST(request: Request) {
       quest_id: quest_id,
       name: itemData.name,
       description: itemData.description,
-      category: itemData.category,
+      category: safeCategory,
       sub_category: itemData.sub_category || null,
       area_name: quest.god_type === "local" ? quest.start_area_name : null,
       god_name: quest.god_name,
