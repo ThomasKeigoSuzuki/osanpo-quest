@@ -150,18 +150,25 @@ export async function POST(request: Request) {
   }
 
   let imageUrl = item.image_url;
+  let imageDebug = "";
   if (itemData.image_prompt_hint) {
+    imageDebug = "prompt_hint exists, calling generateItemImage...";
     const generatedUrl = await generateItemImage(
       itemData.image_prompt_hint,
       item.id
     );
     if (generatedUrl) {
       imageUrl = generatedUrl;
+      imageDebug += ` success: ${generatedUrl.slice(0, 80)}`;
       await supabase
         .from("items")
         .update({ image_url: generatedUrl })
         .eq("id", item.id);
+    } else {
+      imageDebug += " generateItemImage returned null";
     }
+  } else {
+    imageDebug = "no image_prompt_hint in itemData";
   }
 
   await supabase
@@ -305,6 +312,7 @@ export async function POST(request: Request) {
     },
     shinako_reveal: shinakoReveal,
     tutorial_offering: profile && !profile.shinako_revealed,
+    _debug_image: imageDebug,
   });
   } catch (err) {
     console.error("[quest/complete] Unhandled error:", err);

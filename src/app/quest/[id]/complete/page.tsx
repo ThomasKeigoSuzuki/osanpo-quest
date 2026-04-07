@@ -42,6 +42,7 @@ function CompleteContent() {
   if (rankStr) { try { rankInfo = JSON.parse(rankStr); } catch {} }
 
   const isTutorial = searchParams.get("tutorial") === "true";
+  const debugImage = searchParams.get("_debug");
 
   const revealStr = searchParams.get("reveal");
   let revealInfo: { new_stage: number; message: string } | null = null;
@@ -213,6 +214,9 @@ function CompleteContent() {
           <span className="mt-1 inline-block rounded-full bg-[rgba(255,255,255,0.08)] px-3 py-0.5 text-xs text-[var(--color-text-muted)]">
             {item.category === "material" ? "素材" : item.category === "local" ? "ご当地品" : item.category === "crafted" ? "合成品" : "秘宝"}
           </span>
+          {debugImage && (
+            <p className="mt-2 text-[10px] text-[var(--color-danger)] break-all">[DEBUG] {debugImage}</p>
+          )}
         </div>
 
         {/* 絆情報 */}

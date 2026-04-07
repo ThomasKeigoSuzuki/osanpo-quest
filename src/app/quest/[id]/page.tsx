@@ -129,11 +129,13 @@ export default function QuestProgressPage() {
         return;
       }
       if (data.success) {
+        if (data._debug_image) console.log("[DEBUG] image:", data._debug_image);
         let url = `/quest/${id}/complete?item=${encodeURIComponent(JSON.stringify(data.item))}&message=${encodeURIComponent(data.god_message)}`;
         if (data.bond_info) url += `&bond=${encodeURIComponent(JSON.stringify(data.bond_info))}`;
         if (data.rank_info) url += `&rank=${encodeURIComponent(JSON.stringify(data.rank_info))}`;
         if (data.shinako_reveal) url += `&reveal=${encodeURIComponent(JSON.stringify(data.shinako_reveal))}`;
         if (data.tutorial_offering) url += `&tutorial=true`;
+        if (data._debug_image) url += `&_debug=${encodeURIComponent(data._debug_image)}`;
         router.push(url);
       }
       else { setError(data.error || "クリア判定に失敗"); setCompleting(false); }
