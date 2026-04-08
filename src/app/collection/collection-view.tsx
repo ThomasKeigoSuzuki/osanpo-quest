@@ -199,13 +199,11 @@ export function CollectionView({ items }: { items: Item[] }) {
                 <p>
                   {selectedItem.category === "material"
                     ? "素材"
-                    : selectedItem.category === "local"
-                      ? "ご当地品"
-                      : selectedItem.category === "crafted"
-                        ? "合成品"
-                        : "秘宝"}
+                    : selectedItem.category === "crafted"
+                      ? "合成品"
+                      : "シナコの贈り物"}
                   {" · "}
-                  <span className="font-wafuu text-gold">{selectedItem.god_name}</span>より
+                  <span className="font-wafuu text-gold">シナコ</span>より
                 </p>
                 {selectedItem.area_name && (
                   <p>📍 {selectedItem.area_name}</p>

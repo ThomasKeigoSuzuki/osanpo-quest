@@ -3,31 +3,32 @@ import { createClient } from "@/lib/supabase/server";
 import { isValidUUID } from "@/lib/validation";
 import { getGodRevealStage } from "@/lib/god-reveal";
 
+const GOD_NAME = "シナコ";
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { item_id, god_name } = await request.json() as { item_id: string; god_name: string };
-  if (!isValidUUID(item_id) || !god_name) {
+  const { item_id } = await request.json() as { item_id: string; god_name?: string };
+  if (!isValidUUID(item_id)) {
     return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
   }
 
   // アイテム確認
-  const { data: item } = await supabase.from("items").select("id, god_name").eq("id", item_id).eq("user_id", user.id).single();
+  const { data: item } = await supabase.from("items").select("id").eq("id", item_id).eq("user_id", user.id).single();
   if (!item) return NextResponse.json({ error: "Item not found" }, { status: 404 });
-  if (item.god_name !== god_name) return NextResponse.json({ error: "Item does not belong to this god" }, { status: 400 });
 
   // 奉納済みチェック
   const { data: existing } = await supabase.from("offerings").select("id").eq("item_id", item_id).single();
   if (existing) return NextResponse.json({ error: "Already offered" }, { status: 400 });
 
   // 奉納実行
-  const { error: insertErr } = await supabase.from("offerings").insert({ user_id: user.id, god_name, item_id });
+  const { error: insertErr } = await supabase.from("offerings").insert({ user_id: user.id, god_name: GOD_NAME, item_id });
   if (insertErr) return NextResponse.json({ error: "Failed to offer" }, { status: 500 });
 
   // god_bonds 更新
-  const { data: bond } = await supabase.from("god_bonds").select("offerings_count, reveal_stage").eq("user_id", user.id).eq("god_name", god_name).single();
+  const { data: bond } = await supabase.from("god_bonds").select("offerings_count, reveal_stage").eq("user_id", user.id).eq("god_name", GOD_NAME).single();
 
   const newCount = (bond?.offerings_count ?? 0) + 1;
   const newStage = getGodRevealStage(newCount);
@@ -35,15 +36,11 @@ export async function POST(request: Request) {
   const stageChanged = newStage > oldStage;
 
   if (bond) {
-    await supabase.from("god_bonds").update({ offerings_count: newCount, reveal_stage: newStage }).eq("user_id", user.id).eq("god_name", god_name);
+    await supabase.from("god_bonds").update({ offerings_count: newCount, reveal_stage: newStage }).eq("user_id", user.id).eq("god_name", GOD_NAME);
   }
 
-  // シナコの場合: users.shinako_revealed = true
-  let shinakoUnlocked = false;
-  if (god_name === "シナコ") {
-    await supabase.from("users").update({ shinako_revealed: true }).eq("id", user.id);
-    shinakoUnlocked = true;
-  }
+  // shinako_revealed = true
+  await supabase.from("users").update({ shinako_revealed: true }).eq("id", user.id);
 
-  return NextResponse.json({ success: true, new_stage: newStage, offerings_count: newCount, stage_changed: stageChanged, shinako_unlocked: shinakoUnlocked });
+  return NextResponse.json({ success: true, new_stage: newStage, offerings_count: newCount, stage_changed: stageChanged, shinako_unlocked: true });
 }

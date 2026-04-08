@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/server";
 import { reverseGeocode } from "@/lib/geo";
-import { generateWithClaude, generateSimple, extractJSON } from "@/lib/claude";
+import { generateWithClaude, extractJSON } from "@/lib/claude";
 import {
   SHINAKO_SYSTEM_PROMPT,
   buildShinakoUserPrompt,
-  buildLocalGodGenerationPrompt,
-  buildLocalGodQuestSystemPrompt,
 } from "@/lib/prompts";
-import { generateGodImage } from "@/lib/image-generation";
 import { isValidLatLng } from "@/lib/validation";
 import { getDailyQuestConfig, getStreakBonus, getTodayDateString } from "@/lib/daily-quest";
 import { getBondLevel, getBondToneModifier } from "@/lib/bond-system";
@@ -23,40 +19,18 @@ type QuestGeneration = {
   difficulty: number;
 };
 
-type LocalGodGeneration = {
-  god_name: string;
-  personality: string;
-  speech_style: string;
-  first_person: string;
-  sample_greeting: string;
-  appearance?: string;
-};
-
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { lat, lng, god_preference = "random", is_daily = false } = body as {
-    lat: number;
-    lng: number;
-    god_preference?: "wanderer" | "local" | "random";
-    is_daily?: boolean;
-  };
+  const { lat, lng, is_daily = false } = body as { lat: number; lng: number; is_daily?: boolean };
 
   if (!isValidLatLng(lat, lng)) {
-    return NextResponse.json(
-      { error: "Valid lat and lng are required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Valid lat and lng are required" }, { status: 400 });
   }
 
   // 初回クエストかチェック
@@ -78,110 +52,15 @@ export async function POST(request: Request) {
       .single();
 
     if (existing?.completed) {
-      return NextResponse.json(
-        { error: "今日のデイリークエストは完了済みです" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "今日のデイリークエストは完了済みです" }, { status: 400 });
     }
   }
 
   // 1. 逆ジオコーディングで地名取得
   const geo = await reverseGeocode(lat, lng);
 
-  // 2. 神様を決定
-  const useLocal =
-    god_preference === "local" ||
-    (god_preference === "random" && Math.random() >= 0.5);
-
-  let godType: "wanderer" | "local" = "wanderer";
-  let godName = "シナコ";
-  let localGodId: string | null = null;
-  let godImageUrl: string | null = null;
-
-  if (useLocal) {
-    // ご当地神を取得または生成
-    const serviceClient = await createServiceClient();
-    const { data: existingGod } = await serviceClient
-      .from("local_gods")
-      .select("*")
-      .eq("area_code", geo.area_code)
-      .single();
-
-    if (existingGod) {
-      godType = "local";
-      godName = existingGod.god_name;
-      localGodId = existingGod.id;
-      godImageUrl = existingGod.image_url;
-
-      // 画像未生成の既存神にリトライ
-      if (!godImageUrl) {
-        try {
-          const appearance = `A deity named ${existingGod.god_name} from ${existingGod.area_name}. ${existingGod.personality}`;
-          const url = await generateGodImage(appearance, existingGod.id);
-          if (url) {
-            godImageUrl = url;
-            await serviceClient.from("local_gods").update({ image_url: url }).eq("id", existingGod.id);
-          }
-        } catch {}
-      }
-    } else {
-      // Claude APIでご当地神を生成
-      const godPrompt = buildLocalGodGenerationPrompt(
-        geo.area_name,
-        geo.area_keywords
-      );
-      const godResponse = await generateSimple(godPrompt);
-      const godData = extractJSON<LocalGodGeneration>(godResponse);
-
-      const { data: newGod, error: insertError } = await serviceClient
-        .from("local_gods")
-        .insert({
-          area_code: geo.area_code,
-          area_name: geo.area_name,
-          god_name: godData.god_name,
-          personality: godData.personality,
-          speech_style: godData.speech_style,
-          first_person: godData.first_person,
-          sample_greeting: godData.sample_greeting,
-        })
-        .select()
-        .single();
-
-      if (insertError || !newGod) {
-        // 競合時は既存データを取得
-        const { data: fallback } = await serviceClient
-          .from("local_gods")
-          .select("*")
-          .eq("area_code", geo.area_code)
-          .single();
-        if (fallback) {
-          godType = "local";
-          godName = fallback.god_name;
-          localGodId = fallback.id;
-          godImageUrl = fallback.image_url;
-        }
-      } else {
-        godType = "local";
-        godName = newGod.god_name;
-        localGodId = newGod.id;
-
-        // ご当地神のイラストを生成（レスポンス前に完了させる）
-        if (godData.appearance) {
-          try {
-            const url = await generateGodImage(godData.appearance, newGod.id);
-            if (url) {
-              godImageUrl = url;
-              await serviceClient
-                .from("local_gods")
-                .update({ image_url: url })
-                .eq("id", newGod.id);
-            }
-          } catch {}
-        } else {
-        }
-      }
-    }
-  }
+  // 2. シナコ固定
+  const godName = "シナコ";
 
   // 3. 絆レベル取得 + Claude APIでクエスト生成
   const { data: bondData } = await supabase
@@ -198,43 +77,13 @@ export async function POST(request: Request) {
       })()
     : undefined;
 
-  let questResponse: string;
   let userPrompt = buildShinakoUserPrompt(lat, lng, geo.area_name, bondInfo);
 
   if (isTutorial) {
     userPrompt += `\n\n【重要】これは冒険者の初めてのクエストです。移動は不要で、今いる場所で達成できるミッションにしてください。例: 周りを見回して面白いものを見つける、空を見上げる、深呼吸する。ゴール地点は現在地と同じにし、goal_radius_meters は 9999 にしてください。`;
   }
 
-  if (godType === "local" && localGodId) {
-    const serviceClient = await createServiceClient();
-    const { data: god } = await serviceClient
-      .from("local_gods")
-      .select("*")
-      .eq("id", localGodId)
-      .single();
-
-    if (god) {
-      const systemPrompt = buildLocalGodQuestSystemPrompt(
-        god.god_name,
-        god.area_name,
-        god.personality,
-        god.speech_style,
-        god.first_person
-      );
-      questResponse = await generateWithClaude(systemPrompt, userPrompt);
-    } else {
-      questResponse = await generateWithClaude(
-        SHINAKO_SYSTEM_PROMPT,
-        userPrompt
-      );
-    }
-  } else {
-    questResponse = await generateWithClaude(
-      SHINAKO_SYSTEM_PROMPT,
-      userPrompt
-    );
-  }
-
+  const questResponse = await generateWithClaude(SHINAKO_SYSTEM_PROMPT, userPrompt);
   const quest = extractJSON<QuestGeneration>(questResponse);
 
   // 4. quests テーブルに INSERT
@@ -242,9 +91,9 @@ export async function POST(request: Request) {
     .from("quests")
     .insert({
       user_id: user.id,
-      god_type: godType,
+      god_type: "wanderer",
       god_name: godName,
-      local_god_id: localGodId,
+      local_god_id: null,
       mission_text: quest.mission_text,
       mission_type: quest.mission_type,
       start_lat: lat,
@@ -258,29 +107,22 @@ export async function POST(request: Request) {
     .single();
 
   if (questError || !questRow) {
-    return NextResponse.json(
-      { error: "Failed to create quest", detail: questError?.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create quest", detail: questError?.message }, { status: 500 });
   }
 
   // 4.5 デイリークエストの場合、daily_questsに記録
   if (is_daily) {
     const today = getTodayDateString();
     await supabase.from("daily_quests").upsert({
-      user_id: user.id,
-      quest_date: today,
-      quest_id: questRow.id,
-      completed: false,
+      user_id: user.id, quest_date: today, quest_id: questRow.id, completed: false,
     }, { onConflict: "user_id,quest_date" });
   }
 
-  // 5. レスポンス返却
   return NextResponse.json({
     quest_id: questRow.id,
     god_name: godName,
-    god_type: godType,
-    god_image_url: godImageUrl,
+    god_type: "wanderer",
+    god_image_url: "/shinako-face.webp",
     mission_text: quest.mission_text,
     mission_type: quest.mission_type,
     goal_lat: isTutorial ? lat : quest.goal_lat,

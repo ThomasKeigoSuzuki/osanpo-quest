@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       // ユーザープロフィール（1回で全フィールド取得）
       supabase.from("users").select("total_quests_completed, shinako_reveal_stage, shinako_revealed, rank_points, adventurer_rank, login_streak").eq("id", user.id).single(),
       // 絆情報
-      supabase.from("god_bonds").select("bond_exp, total_quests, bond_level").eq("user_id", user.id).eq("god_name", quest.god_name).single(),
+      supabase.from("god_bonds").select("bond_exp, total_quests, bond_level").eq("user_id", user.id).eq("god_name", "シナコ").single(),
     ]);
 
     // --- Phase 3: デイリーボーナス処理 ---
@@ -154,11 +154,11 @@ export async function POST(request: Request) {
         ? supabase.from("god_bonds").update({
             bond_exp: existingBond.bond_exp + 1, total_quests: existingBond.total_quests + 1,
             bond_level: bondNewLevel, last_quest_at: new Date().toISOString(),
-          }).eq("user_id", user.id).eq("god_name", quest.god_name)
+          }).eq("user_id", user.id).eq("god_name", "シナコ")
         : supabase.from("god_bonds").insert({
-            user_id: user.id, god_name: quest.god_name, god_type: quest.god_type,
+            user_id: user.id, god_name: "シナコ", god_type: "wanderer",
             bond_exp: 1, total_quests: 1, last_quest_at: new Date().toISOString(),
-            god_image_url: quest.god_type === "wanderer" ? "/shinako-full.webp" : null,
+            god_image_url: "/shinako-full.webp",
           }),
     ]);
 
@@ -166,7 +166,7 @@ export async function POST(request: Request) {
       success: true,
       item: { id: item.id, name: item.name, description: item.description, category: item.category, image_url: imageUrl ?? item.image_url, rarity: item.rarity },
       god_message: godMessage.replace(/^["']|["']$/g, "").trim(),
-      bond_info: { god_name: quest.god_name, new_level: bondNewLevel, level_name: bondLevelName, leveled_up: bondLeveledUp },
+      bond_info: { god_name: "シナコ", new_level: bondNewLevel, level_name: bondLevelName, leveled_up: bondLeveledUp },
       rank_info: { points_gained: pointsGained, total_points: newTotalPoints, rank: newRankInfo.rank, rank_name: newRankInfo.name, rank_icon: newRankInfo.icon, ranked_up: rankedUp },
       shinako_reveal: shinakoReveal,
       tutorial_offering: profile && !profile.shinako_revealed,

@@ -123,8 +123,8 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">{log.god_type === "wanderer" ? "🌬️" : "⛩️"}</span>
-                        <span className="font-wafuu text-sm font-medium text-gold">{log.god_name}</span>
+                        <span className="text-sm">🌬️</span>
+                        <span className="font-wafuu text-sm font-medium text-gold">シナコと一緒に</span>
                       </div>
                       <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                         {log.completed_at ? new Date(log.completed_at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) : ""}
@@ -173,8 +173,8 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
             <div className="mx-auto mb-4 h-1 w-10 rounded-full" style={{ background: "var(--color-border)" }} />
 
             <div className="flex items-center gap-2">
-              <span>{selected.god_type === "wanderer" ? "🌬️" : "⛩️"}</span>
-              <span className="font-wafuu font-bold text-gold">{selected.god_name}</span>
+              <span>🌬️</span>
+              <span className="font-wafuu font-bold text-gold">シナコと一緒に</span>
               <span className="ml-auto text-xs" style={{ color: "var(--color-text-muted)" }}>
                 {selected.completed_at ? new Date(selected.completed_at).toLocaleDateString("ja-JP") : ""}
               </span>

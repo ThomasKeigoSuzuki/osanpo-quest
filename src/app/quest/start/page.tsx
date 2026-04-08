@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getDailyQuestConfig, getCategoryBonusLabel } from "@/lib/daily-quest";
 
-type Step = "permission" | "select" | "loading" | "error";
+type Step = "permission" | "loading" | "error";
 const MAX_RETRIES = 2;
 const LOADING_MESSAGES = [
   "位置を確認中...",
-  "神様を呼んでいます...",
+  "シナコを呼んでいます...",
   "クエストを組み立て中...",
   "もう少し...",
 ];
@@ -19,9 +19,9 @@ function QuestStartContent() {
   const dailyConfig = isDaily ? getDailyQuestConfig() : null;
 
   const [step, setStep] = useState<Step>("permission");
-  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState("");
-  const [retryPref, setRetryPref] = useState<"wanderer" | "local" | "random" | null>(null);
+  const [canRetry, setCanRetry] = useState(false);
+  const [retryPos, setRetryPos] = useState<{ lat: number; lng: number } | null>(null);
   const [loadingIdx, setLoadingIdx] = useState(0);
   const router = useRouter();
 
@@ -31,19 +31,31 @@ function QuestStartContent() {
     return () => clearInterval(i);
   }, [step]);
 
+  async function startQuest(pos: { lat: number; lng: number }, retry = 0) {
+    try {
+      const res = await fetch("/api/quest/start", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat: pos.lat, lng: pos.lng, is_daily: isDaily }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "失敗しました"); }
+      const d = await res.json();
+      router.push(`/quest/${d.quest_id}`);
+    } catch (err) {
+      if (retry < MAX_RETRIES) { await new Promise((r) => setTimeout(r, 1000)); return startQuest(pos, retry + 1); }
+      setError(err instanceof Error ? err.message : "クエスト開始に失敗しました");
+      setCanRetry(true);
+      setRetryPos(pos);
+      setStep("error");
+    }
+  }
+
   function requestLocation() {
     if (!navigator.geolocation) { setError("位置情報に対応していません"); setStep("error"); return; }
     navigator.geolocation.getCurrentPosition(
       (p) => {
-        setPosition({ lat: p.coords.latitude, lng: p.coords.longitude });
-        if (isDaily) {
-          // デイリーは神様選択をスキップして自動開始
-          const pref = dailyConfig?.type === "direction" ? "wanderer" : "random";
-          setStep("loading");
-          startQuestDirect({ lat: p.coords.latitude, lng: p.coords.longitude }, pref);
-        } else {
-          setStep("select");
-        }
+        const pos = { lat: p.coords.latitude, lng: p.coords.longitude };
+        setStep("loading");
+        startQuest(pos);
       },
       (e) => {
         setError(e.code === 1 ? "位置情報を許可してください" : e.code === 2 ? "GPS を有効にしてください" : "取得がタイムアウトしました");
@@ -53,33 +65,10 @@ function QuestStartContent() {
     );
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  async function startQuestDirect(pos: { lat: number; lng: number }, pref: "wanderer" | "local" | "random", retry = 0) {
-    try {
-      const res = await fetch("/api/quest/start", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lat: pos.lat, lng: pos.lng, god_preference: pref, is_daily: isDaily }),
-      });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "失敗しました"); }
-      const d = await res.json();
-      router.push(`/quest/${d.quest_id}`);
-    } catch (err) {
-      if (retry < MAX_RETRIES) { await new Promise((r) => setTimeout(r, 1000)); return startQuestDirect(pos, pref, retry + 1); }
-      setError(err instanceof Error ? err.message : "クエスト開始に失敗しました"); setStep("error");
-    }
-  }
-
-  const startQuest = useCallback(async (pref: "wanderer" | "local" | "random", retry = 0) => {
-    if (!position) return;
-    setStep("loading"); setRetryPref(pref);
-    await startQuestDirect(position, pref, retry);
-  }, [position, startQuestDirect]);
-
   const catLabel = dailyConfig?.categoryBonus ? getCategoryBonusLabel(dailyConfig.categoryBonus) : "";
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-fantasy px-4">
-      {/* デイリーバナー */}
       {isDaily && dailyConfig && step !== "error" && (
         <div className="card-glass mb-6 w-full max-w-xs p-4 text-center">
           <p className="text-xs text-[var(--color-text-sub)]">📅 デイリークエスト</p>
@@ -102,40 +91,9 @@ function QuestStartContent() {
             </svg>
           </div>
           <h2 className="text-gold mt-6 text-xl font-bold">{isDaily ? "デイリークエスト開始" : "冒険の準備"}</h2>
-          <p className="mt-2 text-sm text-[var(--color-text-sub)]">クエスト生成に現在地が必要です</p>
+          <p className="mt-2 text-sm text-[var(--color-text-sub)]">シナコがあなたの居場所に合わせてクエストを出します</p>
           <button onClick={requestLocation} className="btn-primary mt-8 w-full max-w-xs">位置情報を許可する</button>
           <button onClick={() => router.push("/")} className="btn-ghost mt-3 text-sm">ホームに戻る</button>
-        </div>
-      )}
-
-      {step === "select" && !isDaily && (
-        <div className="w-full max-w-xs text-center">
-          <h2 className="font-wafuu text-gold text-xl font-bold">どの神様に会いますか？</h2>
-          <p className="mt-2 text-sm text-[var(--color-text-sub)]">神様を選んでクエストを始めよう</p>
-          <div className="mt-8 space-y-3">
-            <button onClick={() => startQuest("wanderer")} className="card-glass flex w-full items-center gap-4 p-4 text-left transition hover:border-[var(--color-gold)]">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[rgba(78,205,196,0.15)]">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 8c3-3 6-1 9-4s6 1 9 4" stroke="var(--color-teal)" strokeWidth="2" strokeLinecap="round"/></svg>
-              </div>
-              <div>
-                <p className="font-wafuu font-bold text-[var(--color-text)]">シナコにおまかせ</p>
-                <p className="mt-0.5 text-xs text-[var(--color-text-sub)]">風の神が方角と発見のクエストを出す</p>
-              </div>
-            </button>
-            <button onClick={() => startQuest("local")} className="card-glass flex w-full items-center gap-4 p-4 text-left transition hover:border-[var(--color-gold)]">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[rgba(244,162,97,0.15)]">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2v4M12 6L8 10h8L12 6ZM8 10L5 14h14L17 10M7 14v6h10v-6" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </div>
-              <div>
-                <p className="font-wafuu font-bold text-[var(--color-text)]">この土地の神様に会う</p>
-                <p className="mt-0.5 text-xs text-[var(--color-text-sub)]">ご当地の神様がミッションを出す</p>
-              </div>
-            </button>
-            <button onClick={() => startQuest("random")} className="btn-primary relative mt-2 w-full text-center text-base">
-              おまかせ！
-              <span className="mt-0.5 block text-xs font-normal opacity-70">ランダムに神様が選ばれる</span>
-            </button>
-          </div>
         </div>
       )}
 
@@ -155,7 +113,7 @@ function QuestStartContent() {
           <p className="text-4xl">😥</p>
           <p className="mt-4 text-sm text-[var(--color-danger)]">{error}</p>
           <div className="mt-6 space-y-2">
-            {retryPref && position && <button onClick={() => startQuest(retryPref)} className="btn-primary w-full">もう一度試す</button>}
+            {canRetry && retryPos && <button onClick={() => { setStep("loading"); setCanRetry(false); startQuest(retryPos); }} className="btn-primary w-full">もう一度試す</button>}
             <button onClick={() => { setError(""); setStep("permission"); }} className="btn-secondary w-full">やり直す</button>
             <button onClick={() => router.push("/")} className="btn-ghost w-full text-sm">ホームに戻る</button>
           </div>

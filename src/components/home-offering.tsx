@@ -26,7 +26,7 @@ export function HomeOfferingButton() {
     setLoading(true);
     setPhase("select");
     setSelectedIdx(0);
-    fetch("/api/offering/available?god_name=シナコ")
+    fetch("/api/offering/available")
       .then((r) => r.json())
       .then((d) => setItems(d.items || []))
       .finally(() => setLoading(false));
@@ -41,7 +41,7 @@ export function HomeOfferingButton() {
       const res = await fetch("/api/offering", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ item_id: item.id, god_name: "シナコ" }),
+        body: JSON.stringify({ item_id: item.id }),
       });
       const data = await res.json();
       if (data.success) {

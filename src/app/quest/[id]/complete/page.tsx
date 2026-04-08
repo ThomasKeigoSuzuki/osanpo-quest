@@ -211,7 +211,7 @@ function CompleteContent() {
           </div>
           <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-sub)]">{item.description}</p>
           <span className="mt-1 inline-block rounded-full bg-[rgba(255,255,255,0.08)] px-3 py-0.5 text-xs text-[var(--color-text-muted)]">
-            {item.category === "material" ? "素材" : item.category === "local" ? "ご当地品" : item.category === "crafted" ? "合成品" : "秘宝"}
+            {item.category === "material" ? "素材" : item.category === "crafted" ? "合成品" : "シナコの贈り物"}
           </span>
         </div>
 
@@ -224,12 +224,12 @@ function CompleteContent() {
                   💫 絆レベルが上がった！
                 </p>
                 <p className="mt-1 text-xs" style={{ color: "var(--color-text-sub)" }}>
-                  {bondInfo.god_name}との絆: Lv.{bondInfo.new_level} {bondInfo.level_name}
+                  シナコとの絆: Lv.{bondInfo.new_level} {bondInfo.level_name}
                 </p>
               </>
             ) : (
               <p className="text-xs" style={{ color: "var(--color-text-sub)" }}>
-                💫 {bondInfo.god_name}との絆が深まった（Lv.{bondInfo.new_level} {bondInfo.level_name}）
+                💫 シナコとの絆が深まった（Lv.{bondInfo.new_level} {bondInfo.level_name}）
               </p>
             )}
           </div>
@@ -288,7 +288,7 @@ function CompleteContent() {
                       const res = await fetch("/api/offering", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ item_id: item.id, god_name: "シナコ" }),
+                        body: JSON.stringify({ item_id: item.id }),
                       });
                       const data = await res.json();
                       if (data.success) {

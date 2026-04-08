@@ -63,23 +63,6 @@ export default function QuestProgressPage() {
   }, [id, router]);
 
   useEffect(() => {
-    if (!quest || quest.god_type !== "local" || quest.god_image_url) return;
-    let attempts = 0;
-    const poll = setInterval(async () => {
-      attempts++;
-      if (attempts > 6) { clearInterval(poll); return; }
-      try {
-        const res = await fetch(`/api/quest/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.god_image_url) { setQuest((prev) => prev ? { ...prev, god_image_url: data.god_image_url } : prev); clearInterval(poll); }
-        }
-      } catch {}
-    }, 8000);
-    return () => clearInterval(poll);
-  }, [quest?.god_type, quest?.god_image_url, id]);
-
-  useEffect(() => {
     if (!quest || quest.status !== "active") return;
     if (!navigator.geolocation) { setGeoError("位置情報がサポートされていません"); return; }
     watchId.current = navigator.geolocation.watchPosition(
@@ -154,14 +137,7 @@ export default function QuestProgressPage() {
   }
   function bearingToDir(b: number) { return ["北","北東","東","南東","南","南西","西","北西"][Math.round(b / 45) % 8]; }
 
-  function getAvatarSrc() {
-    if (quest?.god_type === "wanderer") return "/shinako-face.webp";
-    return quest?.god_image_url || null;
-  }
-  function getPlaceholderColor(name: string) {
-    const c = ["#e8b849","#4ecdc4","#f4a261","#e76f51","#2ec4b6","#9b59b6"];
-    return c[(name.charCodeAt(0) || 0) % c.length];
-  }
+  const avatarSrc = "/shinako-face.webp";
 
   if (fetchError) return (
     <div className="flex min-h-dvh items-center justify-center bg-fantasy px-4">
@@ -184,23 +160,16 @@ export default function QuestProgressPage() {
   );
 
   const bearing = userPos ? getBearing(userPos.lat, userPos.lng, quest.goal_lat, quest.goal_lng) : 0;
-  const avatarSrc = getAvatarSrc();
 
   return (
     <div className="flex min-h-dvh flex-col bg-fantasy">
-      {/* 神様コンパニオンバー */}
+      {/* シナコ コンパニオンバー */}
       <div className="card-glass mx-3 mt-8 rounded-2xl p-3">
         <div className="flex items-start gap-3">
-          {avatarSrc ? (
-            <img src={avatarSrc} alt={quest.god_name} className="h-11 w-11 shrink-0 rounded-full border-2 border-[var(--color-gold)] object-cover" />
-          ) : (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-[var(--color-gold)]" style={{ backgroundColor: getPlaceholderColor(quest.god_name) }}>
-              <span className="text-lg font-bold text-white">{quest.god_name.charAt(0)}</span>
-            </div>
-          )}
+          <img src={avatarSrc} alt="シナコ" className="h-11 w-11 shrink-0 rounded-full border-2 border-[var(--color-gold)] object-cover" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-wafuu text-gold text-sm font-bold">{quest.god_name}</span>
+              <span className="font-wafuu text-gold text-sm font-bold">シナコ</span>
               <span className="rounded-full bg-[rgba(232,184,73,0.2)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-gold)]">
                 {quest.mission_type === "direction" ? "方角・距離" : quest.mission_type === "discovery" ? "発見" : "体験"}
               </span>

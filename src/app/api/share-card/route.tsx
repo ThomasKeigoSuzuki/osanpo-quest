@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     memory: "🎐 風景の欠片",
     divine: "✨ 神様の贈り物",
     material: "素材",
-    local: "ご当地品",
+    local: "シナコの贈り物",
   };
 
   return new ImageResponse(
@@ -158,7 +158,7 @@ export async function GET(req: NextRequest) {
               marginBottom: 40,
             }}
           >
-            {params.god_name}より
+            シナコより
             {params.area_name ? ` · ${params.area_name}` : ""}
           </div>
 

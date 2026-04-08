@@ -50,8 +50,7 @@ const CATEGORIES = [
   },
   { key: "divine", icon: "✨", name: "神様の贈り物", target: 25,
     subs: [
-      { key: "shinako", name: "シナコ限定", hint: "シナコのクエストをクリアしよう" },
-      { key: "local", name: "ご当地神限定", hint: "土地の神様に会いに行こう" },
+      { key: "shinako", name: "シナコの贈り物", hint: "シナコのクエストをクリアしよう" },
       { key: "crafted", name: "合成品", hint: "特別な組み合わせで生まれる" },
       { key: "seasonal", name: "季節限定", hint: "季節ごとの冒険で手に入る" },
     ],
@@ -178,7 +177,7 @@ export function CatalogView({ items }: { items: Item[] }) {
                 </div>
                 <p className="mt-3 text-center text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>{selectedItem.description}</p>
                 <p className="mt-2 text-xs" style={{ color: "var(--color-text-muted)" }}>
-                  {selectedItem.god_name}より{selectedItem.area_name ? ` · ${selectedItem.area_name}` : ""}
+                  シナコより{selectedItem.area_name ? ` · ${selectedItem.area_name}` : ""}
                 </p>
               </div>
               <button onClick={() => setSelectedItem(null)} className="btn-ghost mt-6 w-full text-center text-sm" style={{ border: "1px solid var(--color-border)" }}>閉じる</button>
