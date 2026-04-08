@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { introDialogues, getFirstVisitOfDayDialogue, getReturningSameDayDialogue } from "@/lib/shinako-dialogue";
 
@@ -136,36 +136,26 @@ function IntroScreen({ activeQuest }: { activeQuest: { id: string } | null }) {
 // ============================
 // 再訪問ユーザー: 御簾演出付きホーム
 // ============================
-function ReunionHome({ data }: { data: HomeData }) {
-  const [phase, setPhase] = useState<"misu-down" | "raising" | "ready">("misu-down");
-  const [showDialogue, setShowDialogue] = useState(false);
+function getShinakoVisualEffect(bondLevel: number): React.CSSProperties {
+  if (bondLevel >= 7) return { filter: "saturate(1.15) brightness(1.05) drop-shadow(0 0 30px rgba(232,184,73,0.5))" };
+  if (bondLevel >= 5) return { filter: "saturate(1.08) drop-shadow(0 0 20px rgba(232,184,73,0.3))" };
+  if (bondLevel >= 3) return { filter: "drop-shadow(0 0 12px rgba(232,184,73,0.2))" };
+  return {};
+}
 
+function ReunionHome({ data }: { data: HomeData }) {
   const isFirstVisitOfDay = useMemo(() => {
     if (!data.lastHomeVisitAt) return true;
     const last = new Date(data.lastHomeVisitAt);
     const now = new Date();
-    // JST基準で日付比較
     const toJSTDate = (d: Date) => new Date(d.toLocaleString("en-US", { timeZone: "Asia/Tokyo" })).toDateString();
     return toJSTDate(last) !== toJSTDate(now);
   }, [data.lastHomeVisitAt]);
 
   const reunionQuote = useMemo(() => {
-    if (isFirstVisitOfDay) {
-      return getFirstVisitOfDayDialogue(data.shinakoBondLevel);
-    }
+    if (isFirstVisitOfDay) return getFirstVisitOfDayDialogue(data.shinakoBondLevel);
     return getReturningSameDayDialogue(data.shinakoBondLevel);
   }, [isFirstVisitOfDay, data.shinakoBondLevel]);
-
-  useEffect(() => {
-    // 500ms待ってから御簾巻き上げ開始
-    const t1 = setTimeout(() => setPhase("raising"), 500);
-    // 巻き上げ完了後(2.5s)にready
-    const t2 = setTimeout(() => {
-      setPhase("ready");
-      setShowDialogue(true);
-    }, 3000);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
 
   const { rankInfo, totalQuests, itemCount, areaCount, streak, shinakoBond, dailyCompleted, dailyConfig, mainBonus, activeQuest } = data;
 
@@ -201,7 +191,7 @@ function ReunionHome({ data }: { data: HomeData }) {
         )}
       </div>
 
-      {/* シナコ画像（最背面） */}
+      {/* シナコ画像 */}
       <div className="pointer-events-none absolute left-1/2 z-[5] -translate-x-1/2" style={{ top: "15%", width: "90%", maxWidth: 380, height: "75dvh" }}>
         <img
           src={SHINAKO_IMG}
@@ -209,35 +199,15 @@ function ReunionHome({ data }: { data: HomeData }) {
           className="h-full w-full object-cover"
           style={{
             objectPosition: "center 5%",
-            filter: phase === "misu-down" ? "brightness(0) blur(2px)" : phase === "raising" ? "brightness(0.6) blur(0.5px)" : "none",
-            transition: "filter 2s ease-in-out",
-            animation: phase === "ready" ? "hairSway 6s ease-in-out infinite" : undefined,
+            animation: "hairSway 6s ease-in-out infinite",
+            ...getShinakoVisualEffect(data.shinakoBondLevel),
           }}
         />
       </div>
 
-      {/* 御簾画像（巻き上げアニメーション） */}
-      {phase !== "ready" && (
-        <img
-          src="/misu.webp"
-          alt=""
-          className="pointer-events-none absolute left-1/2 z-[6] -translate-x-1/2"
-          style={{
-            top: "-15%",
-            width: "90%",
-            maxWidth: 380,
-            height: "90dvh",
-            objectFit: "cover",
-            objectPosition: "center top",
-            animation: phase === "raising" ? "misuRaising 2.5s ease-out forwards" : undefined,
-            opacity: phase === "misu-down" ? 0.7 : undefined,
-          }}
-        />
-      )}
-
       {/* 絆バッジ */}
       <Link href="/bonds" className="absolute left-1/2 z-[7] -translate-x-1/2" style={{ top: "12%", width: "50%", height: "35dvh" }} aria-label="シナコとの絆" />
-      {shinakoBond && phase === "ready" && (
+      {shinakoBond && (
         <div className="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2" style={{ top: "14%" }}>
           <span className="rounded-lg px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "var(--color-gold)" }}>
             💫 Lv.{shinakoBond.level} {shinakoBond.name}
@@ -245,19 +215,16 @@ function ReunionHome({ data }: { data: HomeData }) {
         </div>
       )}
 
-      {/* セリフ（巻き上げ完了後に表示） */}
-      {showDialogue && (
-        <div className="absolute right-2 z-30" style={{ top: "12%", animation: "dialogueFadeIn 0.6s ease-out forwards" }}>
+      {/* セリフ */}
+      <div className="absolute right-2 z-30" style={{ top: "12%", animation: "dialogueFadeIn 0.6s ease-out forwards" }}>
           <div className="relative rounded-xl px-3 py-2" style={{ maxWidth: 180, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(12px)", border: "1px solid rgba(232,184,73,0.2)" }}>
             <p className="text-[11px] leading-relaxed text-white line-clamp-3">「{reunionQuote}」</p>
             <div className="absolute -bottom-1.5 left-5" style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "6px solid rgba(0,0,0,0.65)" }} />
           </div>
         </div>
-      )}
 
       {/* デイリーカード */}
-      {phase === "ready" && (
-        <Link href="/quest/start?daily=true" className="absolute left-2 z-20" style={{ top: "40%", animation: "dialogueFadeIn 0.5s ease-out forwards" }}>
+      <Link href="/quest/start?daily=true" className="absolute left-2 z-20" style={{ top: "40%" }}>
           <div className="rounded-xl p-2.5" style={{ width: 120, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)", border: "1px solid rgba(232,184,73,0.2)" }}>
             <p className="text-[9px] font-bold" style={{ color: "var(--color-gold)" }}>📅 今日のクエスト</p>
             <p className="font-wafuu mt-0.5 truncate text-[11px] text-white">{dailyConfig.name}</p>
@@ -267,13 +234,9 @@ function ReunionHome({ data }: { data: HomeData }) {
             </div>
           </div>
         </Link>
-      )}
 
       {/* アクションボタン */}
-      <div
-        className="absolute bottom-3 left-0 right-0 z-20 px-3 safe-bottom transition-all duration-500"
-        style={{ opacity: phase === "ready" ? 1 : 0, transform: phase === "ready" ? "translateY(0)" : "translateY(20px)" }}
-      >
+      <div className="absolute bottom-3 left-0 right-0 z-20 px-3 safe-bottom">
         <div className="flex gap-2">
           {activeQuest ? (
             <Link href={`/quest/${activeQuest.id}`} className="flex flex-1 flex-col items-center rounded-2xl py-3 transition active:scale-[0.95]" style={{ background: "linear-gradient(135deg, #e76f51, #f4a261)", boxShadow: "0 4px 16px rgba(231,111,81,0.4)" }}>

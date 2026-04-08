@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import { tutorialCompleteDialogues } from "@/lib/shinako-dialogue";
+import { BondLevelUpOverlay } from "@/components/bond-level-up-overlay";
 
 type Item = {
   id: string;
@@ -54,6 +55,14 @@ function CompleteContent() {
   const [tutorialDialogueIdx, setTutorialDialogueIdx] = useState(0);
   const [misuLowering, setMisuLowering] = useState(false);
   const [tutorialReady, setTutorialReady] = useState(false);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+
+  // 絆Lvアップ演出
+  useEffect(() => {
+    if (!bondInfo?.leveled_up) return;
+    const timer = setTimeout(() => setShowLevelUp(true), 1500);
+    return () => clearTimeout(timer);
+  }, [bondInfo]);
 
   // チュートリアル完了演出のタイマー管理
   useEffect(() => {
@@ -379,6 +388,14 @@ function CompleteContent() {
           )}
         </div>
       </div>
+
+      {showLevelUp && bondInfo && (
+        <BondLevelUpOverlay
+          newLevel={bondInfo.new_level}
+          levelName={bondInfo.level_name}
+          onClose={() => setShowLevelUp(false)}
+        />
+      )}
     </div>
   );
 }
