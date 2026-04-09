@@ -257,6 +257,16 @@ export function SettingsForm() {
           </button>
         </div>
 
+        {/* タイトルに戻る */}
+        <div className="card-glass p-4">
+          <button
+            onClick={() => router.push("/login")}
+            className="btn-ghost w-full min-h-[44px] text-sm"
+          >
+            タイトルに戻る
+          </button>
+        </div>
+
         {/* アプリ情報 */}
         <div className="card-glass p-4">
           <h2 className="text-sm font-medium" style={{ color: "var(--color-text-sub)" }}>アプリ情報</h2>
