@@ -55,7 +55,7 @@ function IntroScreen({ activeQuest }: { activeQuest: { id: string } | null }) {
           src={SHINAKO_IMG}
           alt="シナコ"
           className="h-full w-full object-cover"
-          style={{ objectPosition: "center 5%", animation: "hairSway 6s ease-in-out infinite" }}
+          style={{ objectPosition: "center 5%" }}
         />
       </div>
 
@@ -199,7 +199,6 @@ function ReunionHome({ data }: { data: HomeData }) {
           className="h-full w-full object-cover"
           style={{
             objectPosition: "center 5%",
-            animation: "hairSway 6s ease-in-out infinite",
             ...getShinakoVisualEffect(data.shinakoBondLevel),
           }}
         />

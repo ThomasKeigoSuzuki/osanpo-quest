@@ -60,7 +60,6 @@ export function MisuOverlay({
           objectPosition: "center 5%",
           filter: CHAR_FILTER[s] || "none",
           transition: "filter 1s ease-in-out",
-          animation: s >= 5 && type === "shinako" ? "hairSway 6s ease-in-out infinite" : undefined,
         }}
       />
 
