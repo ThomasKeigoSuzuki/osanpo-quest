@@ -105,6 +105,19 @@ export function getReturningSameDayDialogue(bondLevel: number): string {
   return byLevel[Math.min(bondLevel - 1, 6)];
 }
 
+// === プレイヤーへの呼び方（絆レベル別）===
+export function getPlayerAddressByBondLevel(bondLevel: number, playerName?: string): string {
+  if (bondLevel >= 6 && playerName) return playerName;
+  if (bondLevel >= 4) return "あなた";
+  return "あんた";
+}
+
+// === シナコの一人称（絆レベル別）===
+export function getShinakoFirstPersonByBondLevel(bondLevel: number): string {
+  if (bondLevel >= 5) return "わたし";
+  return "あたし";
+}
+
 // === 通常のホーム表示用（曜日×絆レベル）===
 export function getShinakoDialogue(
   bondLevel: number,

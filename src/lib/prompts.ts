@@ -1,3 +1,5 @@
+import { getPlayerAddressByBondLevel, getShinakoFirstPersonByBondLevel } from "@/lib/shinako-dialogue";
+
 /** シナコ（放浪神）用 システムプロンプト */
 export const SHINAKO_SYSTEM_PROMPT = `あなたは「シナコ」、風を司る放浪の神様です。
 
@@ -54,7 +56,8 @@ export function buildShinakoUserPrompt(
   lat: number,
   lng: number,
   areaName: string,
-  bondInfo?: { level: number; levelName: string; toneModifier: string }
+  bondInfo?: { level: number; levelName: string; toneModifier: string },
+  playerName?: string
 ): string {
   const now = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
   let prompt = `【現在地情報】
@@ -64,7 +67,14 @@ export function buildShinakoUserPrompt(
 現在時刻: ${now}`;
 
   if (bondInfo) {
-    prompt += `\n\n【この冒険者との絆レベル: ${bondInfo.level}（${bondInfo.levelName}）】\n${bondInfo.toneModifier}`;
+    const address = getPlayerAddressByBondLevel(bondInfo.level, playerName);
+    const firstPerson = getShinakoFirstPersonByBondLevel(bondInfo.level);
+    prompt += `\n\n【この冒険者との絆レベル: ${bondInfo.level}（${bondInfo.levelName}）】
+${bondInfo.toneModifier}
+【口調指示】
+- 一人称: ${firstPerson}
+- プレイヤーへの呼び方: ${address}（これを必ず使うこと）
+- 絆Lv${bondInfo.level}に応じた感情の温度感`;
   }
 
   prompt += `\n\nこの場所・時間にふさわしいミッションを1つ生成してください。地名「${areaName}」をセリフに必ず含めてください。`;

@@ -36,10 +36,11 @@ export async function POST(request: Request) {
   // 初回クエストかチェック
   const { data: userStats } = await supabase
     .from("users")
-    .select("total_quests_completed")
+    .select("total_quests_completed, display_name")
     .eq("id", user.id)
     .single();
   const isTutorial = (userStats?.total_quests_completed ?? 0) === 0;
+  const playerName = userStats?.display_name;
 
   // デイリークエストチェック
   if (is_daily) {
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
       })()
     : undefined;
 
-  let userPrompt = buildShinakoUserPrompt(lat, lng, geo.area_name, bondInfo);
+  let userPrompt = buildShinakoUserPrompt(lat, lng, geo.area_name, bondInfo, playerName);
 
   if (isTutorial) {
     userPrompt += `\n\n【重要】これは冒険者の初めてのクエストです。移動は不要で、今いる場所で達成できるミッションにしてください。例: 周りを見回して面白いものを見つける、空を見上げる、深呼吸する。ゴール地点は現在地と同じにし、goal_radius_meters は 9999 にしてください。`;

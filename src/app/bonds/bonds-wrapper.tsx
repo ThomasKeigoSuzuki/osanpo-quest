@@ -2,6 +2,7 @@
 
 import type { Database } from "@/types/database";
 import { getBondLevel, BOND_LEVELS } from "@/lib/bond-system";
+import { SHINAKO_MEMORIES, getNextMemory } from "@/lib/shinako-memories";
 import Link from "next/link";
 
 type Bond = Database["public"]["Tables"]["god_bonds"]["Row"];
@@ -58,9 +59,20 @@ export function BondsWrapper({ bond, recentQuests }: { bond: Bond | null; recent
               </div>
             )}
             {nextLevel && (
-              <p className="mt-2 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-                次: Lv.{nextLevel.level} {nextLevel.name}
-              </p>
+              <div className="card-glass mx-auto mt-3 w-full max-w-[260px] p-3 text-center">
+                <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>次のレベルで解放</p>
+                <p className="mt-1 text-xs text-gold">
+                  Lv.{nextLevel.level} {nextLevel.name}
+                </p>
+                {getNextMemory(bl?.level ?? 0) && (
+                  <p className="mt-0.5 text-[10px] text-gold">
+                    🔓 新しい記憶 「{getNextMemory(bl?.level ?? 0)?.title}」
+                  </p>
+                )}
+                {nextLevel.level === 4 && <p className="mt-0.5 text-[10px] text-gold">💫 シナコの呼び方が変わる…</p>}
+                {nextLevel.level === 5 && <p className="mt-0.5 text-[10px] text-gold">💫 シナコの一人称が変わる…</p>}
+                {nextLevel.level === 6 && <p className="mt-0.5 text-[10px] text-gold">💫 名前で呼んでくれるようになる…</p>}
+              </div>
             )}
           </div>
 
@@ -102,13 +114,36 @@ export function BondsWrapper({ bond, recentQuests }: { bond: Bond | null; recent
             )}
           </div>
 
-          {/* シナコの素顔（プレースホルダ） */}
+          {/* シナコの記憶 */}
           <div className="mt-6">
-            <h3 className="font-wafuu text-sm font-bold text-gold">シナコの素顔</h3>
-            <div className="card-glass mt-2 p-4 text-center">
-              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                絆を深めると、シナコの新しい一面が見えてくる…
-              </p>
+            <h3 className="font-wafuu text-sm font-bold text-gold">シナコの記憶</h3>
+            <p className="mt-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+              絆を深めると、シナコの過去が少しずつ見えてくる
+            </p>
+            <div className="mt-3 space-y-2">
+              {SHINAKO_MEMORIES.map((memory) => {
+                const unlocked = bl && memory.unlockBondLevel <= bl.level;
+                return (
+                  <div key={memory.id} className="card-glass p-3" style={{ opacity: unlocked ? 1 : 0.4 }}>
+                    {unlocked ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <p className="font-wafuu text-xs font-bold text-gold">{memory.title}</p>
+                          <span className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>Lv.{memory.unlockBondLevel}</span>
+                        </div>
+                        <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
+                          「{memory.text}」
+                        </p>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">🔒</span>
+                        <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>Lv.{memory.unlockBondLevel}で解放</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
