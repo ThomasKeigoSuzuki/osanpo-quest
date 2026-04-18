@@ -23,8 +23,10 @@ export function BondsWrapper({ bond, recentQuests }: { bond: Bond | null; recent
       {!bond ? (
         <div className="card-glass mt-16 p-6 text-center">
           <p className="text-4xl">💫</p>
-          <p className="mt-3 text-sm" style={{ color: "var(--color-text-sub)" }}>まだシナコと出会っていません。<br />クエストに出かけよう！</p>
-          <Link href="/quest/start" className="btn-primary mt-4 inline-block">クエストを始める</Link>
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
+            神無子との絆は、これから。<br />一歩ふみだすと、ここに思い出が積もります。
+          </p>
+          <Link href="/quest/start" className="btn-primary mt-4 inline-block">歩きはじめる</Link>
         </div>
       ) : (
         <div className="mx-auto mt-6 max-w-sm">
@@ -96,7 +98,7 @@ export function BondsWrapper({ bond, recentQuests }: { bond: Bond | null; recent
           <div className="mt-6">
             <h3 className="font-wafuu text-sm font-bold text-gold">これまでの軌跡</h3>
             {recentQuests.length === 0 ? (
-              <p className="mt-2 text-xs" style={{ color: "var(--color-text-muted)" }}>まだ冒険の記録がありません</p>
+              <p className="mt-2 text-xs" style={{ color: "var(--color-text-muted)" }}>歩いた記録がたまると、ここに並びます</p>
             ) : (
               <div className="mt-2 space-y-2">
                 {recentQuests.map((q) => (

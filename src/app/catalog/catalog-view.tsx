@@ -144,7 +144,7 @@ export function CatalogView({ items }: { items: Item[] }) {
                   {/* 未入手プレースホルダー */}
                   {subItems.length === 0 && (
                     <div className="flex flex-col items-center rounded-2xl border border-dashed p-3" style={{ borderColor: "var(--color-border)" }}>
-                      <div className="flex h-16 w-16 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
+                      <div className="flex h-16 w-16 items-center justify-center rounded-lg" style={{ background: "rgba(237,228,211,0.65)" }}>
                         <span className="text-xl" style={{ color: "var(--color-text-muted)" }}>？</span>
                       </div>
                       <p className="mt-1 text-center text-[9px]" style={{ color: "var(--color-text-muted)" }}>{sub.hint}</p>
@@ -158,7 +158,7 @@ export function CatalogView({ items }: { items: Item[] }) {
 
         {/* アイテム詳細モーダル */}
         {selectedItem && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setSelectedItem(null)}>
+          <div className="fixed inset-0 z-50 flex items-end justify-center backdrop-blur-sm" style={{ background: "rgba(42,37,32,0.42)" }} onClick={() => setSelectedItem(null)}>
             <div className="card-glass w-full max-w-md animate-[fadeInUp_0.3s_ease-out] rounded-t-3xl p-6 safe-bottom" onClick={(e) => e.stopPropagation()}>
               <div className="mx-auto mb-4 h-1 w-10 rounded-full" style={{ background: "var(--color-border)" }} />
               <div className="flex flex-col items-center">
@@ -235,7 +235,7 @@ export function CatalogView({ items }: { items: Item[] }) {
       </div>
 
       {/* コレクションへのリンク */}
-      <Link href="/collection" className="btn-ghost mt-6 block w-full text-center text-sm" style={{ border: "1px solid var(--color-border)" }}>
+      <Link href="/library?tab=collection" className="btn-ghost mt-6 block w-full text-center text-sm" style={{ border: "1px solid var(--color-border)" }}>
         コレクションを見る →
       </Link>
     </div>

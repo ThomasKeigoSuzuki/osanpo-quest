@@ -96,9 +96,13 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
       {logs.length === 0 ? (
         <div className="mt-20 text-center" style={{ color: "var(--color-text-sub)" }}>
           <p className="text-4xl">📖</p>
-          <p className="mt-3 text-sm">
-            まだ冒険の記録がありません。<br />最初のクエストに出かけよう！
+          <p className="mt-3 text-sm leading-relaxed">
+            まっさらの日記帳。<br />一歩ふみだすと、ここに景色が増えていきます。
           </p>
+          <p className="mt-4 text-xs italic" style={{ color: "var(--accent-gold-dark)" }}>
+            「歩いた場所は、ぜんぶ宝物になるんだよ。」
+          </p>
+          <p className="mt-1 text-[10px] font-wafuu" style={{ color: "var(--accent-gold-dark)" }}>—神無子</p>
         </div>
       ) : (
         <div className="mt-6 space-y-6">
@@ -163,7 +167,8 @@ export function AdventureLogView({ logs }: { logs: AdventureLog[] }) {
       {/* 詳細モーダル */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center backdrop-blur-sm"
+          style={{ background: "rgba(42,37,32,0.42)" }}
           onClick={() => setSelected(null)}
         >
           <div
@@ -266,7 +271,7 @@ function RouteMapMapbox({
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: "mapbox://styles/mapbox/outdoors-v12",
+      style: "mapbox://styles/mapbox/light-v11",
       center: [(Math.min(...allLngs) + Math.max(...allLngs)) / 2, (Math.min(...allLats) + Math.max(...allLats)) / 2],
       zoom: 14,
       interactive: true,
@@ -289,7 +294,7 @@ function RouteMapMapbox({
         id: "route-line",
         type: "line",
         source: "route",
-        paint: { "line-color": "#6B8E7B", "line-width": 3, "line-opacity": 0.8 },
+        paint: { "line-color": "#6BA7B5", "line-width": 3, "line-opacity": 0.85 },
         layout: { "line-cap": "round", "line-join": "round" },
       });
 
@@ -301,14 +306,14 @@ function RouteMapMapbox({
       map.fitBounds(bounds, { padding: 30 });
     });
 
-    // スタートマーカー
+    // スタートマーカー（浅葱）
     const startEl = document.createElement("div");
-    startEl.innerHTML = '<div style="width:12px;height:12px;background:#6B8E7B;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>';
+    startEl.innerHTML = '<div style="width:12px;height:12px;background:#6BA7B5;border:2px solid #FFFDF7;border-radius:50%;box-shadow:0 1px 3px rgba(42,37,32,0.2)"></div>';
     new mapboxgl.Marker({ element: startEl }).setLngLat([startLng, startLat]).addTo(map);
 
-    // ゴールマーカー
+    // ゴールマーカー（山吹）
     const goalEl = document.createElement("div");
-    goalEl.innerHTML = '<div style="width:12px;height:12px;background:#E85D4A;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>';
+    goalEl.innerHTML = '<div style="width:12px;height:12px;background:#D9A441;border:2px solid #FFFDF7;border-radius:50%;box-shadow:0 1px 3px rgba(42,37,32,0.2)"></div>';
     new mapboxgl.Marker({ element: goalEl }).setLngLat([goalLng, goalLat]).addTo(map);
 
     mapRef.current = map;
@@ -323,9 +328,9 @@ function RouteMapMapbox({
   return (
     <div
       className="overflow-hidden rounded-xl shadow-sm"
-      style={{ border: "2px solid var(--color-gold)", boxShadow: "0 0 12px rgba(232,184,73,0.2)" }}
+      style={{ border: "1.5px solid var(--accent-gold)", boxShadow: "0 0 12px rgba(217,164,65,0.18)" }}
     >
-      <div ref={containerRef} className="h-[200px] w-full" style={{ background: "var(--color-bg-primary)" }} />
+      <div ref={containerRef} className="h-[200px] w-full" style={{ background: "var(--surface-sunken)" }} />
     </div>
   );
 }

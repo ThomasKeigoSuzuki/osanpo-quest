@@ -145,13 +145,13 @@ function CompleteContent() {
 
   const tier = getRarityTier(item.rarity);
   const bgGrad = tier === "ssr"
-    ? "from-[#1a1a2e] via-[#2a1a3e] to-[#1a1a2e]"
+    ? "from-[#FFFDF7] via-[#F7EAD0] to-[#F1EAD8]"
     : tier === "rare"
-      ? "from-[#1a1a2e] via-[#1a2a3e] to-[#1a1a2e]"
-      : "from-[#1a1a2e] via-[#16213e] to-[#1a1a2e]";
+      ? "from-[#FFFDF7] via-[#F3ECDA] to-[#F1EAD8]"
+      : "from-[#FFFDF7] via-[#F7F2E8] to-[#F1EAD8]";
 
   const particleCount = tier === "ssr" ? 20 : tier === "rare" ? 12 : 6;
-  const flashColor = tier === "ssr" ? "bg-[var(--color-gold)]" : tier === "rare" ? "bg-[var(--color-gold)]" : "bg-white";
+  const flashColor = tier === "ssr" ? "bg-[var(--accent-gold)]" : tier === "rare" ? "bg-[var(--accent-gold-light)]" : "bg-[var(--surface-raised)]";
 
   return (
     <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-gradient-to-b ${bgGrad} px-4`}>
@@ -169,7 +169,7 @@ function CompleteContent() {
                 opacity: tier === "ssr" ? 0.6 : 0.3,
               }}
             >
-              <span className={`text-sm ${tier === "common" ? "text-white/40" : "text-[var(--color-gold)]"}`}>
+              <span className={`text-sm ${tier === "common" ? "text-[var(--text-muted)] opacity-50" : "text-[var(--color-gold)]"}`}>
                 {tier === "ssr" ? "✦" : "·"}
               </span>
             </div>
@@ -203,11 +203,11 @@ function CompleteContent() {
                 {tier === "ssr" && <div className="absolute -inset-6 animate-[glowRing_2s_ease-in-out_infinite] rounded-full border border-[var(--color-gold)] opacity-30" />}
               </>
             )}
-            <div className={`relative mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border ${tier === "ssr" ? "border-[var(--color-gold)] shadow-[0_0_30px_rgba(232,184,73,0.3)]" : tier === "rare" ? "border-[var(--color-gold)]/50" : "border-[var(--color-border)]"} bg-[rgba(255,255,255,0.05)] backdrop-blur-sm`}>
+            <div className={`relative mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border ${tier === "ssr" ? "border-[var(--accent-gold)] shadow-[0_0_30px_rgba(217,164,65,0.35)]" : tier === "rare" ? "border-[var(--accent-gold)]/55" : "border-[rgba(217,164,65,0.25)]"} bg-[rgba(255,253,247,0.9)] backdrop-blur-sm`}>
               {item.image_url ? (
                 <img src={item.image_url} alt={item.name} className="h-32 w-32 rounded-xl object-cover" />
               ) : (
-                <div className="h-32 w-32 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] via-[rgba(255,255,255,0.1)] to-[rgba(255,255,255,0.05)] bg-[length:200%_100%]" />
+                <div className="h-32 w-32 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-xl bg-gradient-to-r from-[rgba(237,228,211,0.5)] via-[rgba(217,164,65,0.2)] to-[rgba(237,228,211,0.5)] bg-[length:200%_100%]" />
               )}
             </div>
           </div>
@@ -219,7 +219,7 @@ function CompleteContent() {
             ))}
           </div>
           <p className="mt-3 text-sm leading-relaxed text-[var(--color-text-sub)]">{item.description}</p>
-          <span className="mt-1 inline-block rounded-full bg-[rgba(255,255,255,0.08)] px-3 py-0.5 text-xs text-[var(--color-text-muted)]">
+          <span className="mt-1 inline-block rounded-full bg-[rgba(237,228,211,0.75)] px-3 py-0.5 text-xs text-[var(--color-text-muted)]">
             {item.category === "material" ? "素材" : item.category === "crafted" ? "合成品" : "シナコの贈り物"}
           </span>
         </div>
@@ -323,14 +323,15 @@ function CompleteContent() {
                     key={i}
                     className="rounded-xl px-4 py-3"
                     style={{
-                      background: "rgba(0,0,0,0.6)",
-                      border: "1px solid rgba(232,184,73,0.3)",
+                      background: "rgba(255,253,247,0.94)",
+                      border: "1px solid rgba(217,164,65,0.3)",
+                      boxShadow: "0 2px 10px rgba(42,37,32,0.06)",
                       opacity: i <= tutorialDialogueIdx ? 1 : 0,
                       animation: i <= tutorialDialogueIdx ? "dialogueFadeIn 0.6s ease-out forwards" : undefined,
                     }}
                   >
-                    <p className="text-sm leading-relaxed text-white">「{line}」</p>
-                    <p className="mt-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>— シナコ</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-primary)" }}>「{line}」</p>
+                    <p className="mt-1 text-[10px]" style={{ color: "var(--text-muted)" }}>— シナコ</p>
                   </div>
                 ))}
               </div>

@@ -53,7 +53,7 @@ export function CollectionView({ items }: { items: Item[] }) {
     <div className="px-4 pt-8 pb-4">
       <div className="flex items-center justify-between">
         <h1 className="font-wafuu text-xl font-bold text-gold">コレクション</h1>
-        <Link href="/catalog" className="text-xs text-[var(--color-teal)] hover:underline">図鑑を見る →</Link>
+        <Link href="/library?tab=catalog" className="text-xs text-[var(--color-teal)] hover:underline">図鑑を見る →</Link>
       </div>
       <p className="mt-1 text-sm" style={{ color: "var(--color-text-sub)" }}>
         集めたアイテム: {items.length}個
@@ -61,17 +61,14 @@ export function CollectionView({ items }: { items: Item[] }) {
 
       {items.length === 0 ? (
         <div className="card-glass mt-20 p-6 text-center">
-          <p className="text-4xl">📦</p>
-          <p className="mt-3 text-sm" style={{ color: "var(--color-text-sub)" }}>
-            まだアイテムがありません。
-            <br />
-            クエストをクリアして最初のアイテムを手に入れよう！
+          <p className="text-4xl">🎁</p>
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
+            まだたからは空っぽ。<br />クエストを一つ終えると、ここに贈り物が届きます。
           </p>
           <p className="mt-4 text-xs italic text-gold">
-            「まだ何も持ってないの？ ふふ、最初の冒険に出かけてみなよ！」
-            <br />
-            <span className="font-wafuu not-italic">—シナコ</span>
+            「何があらわれるかは、歩いてみないと分からないよ。ふふ。」
           </p>
+          <p className="mt-1 text-[10px] font-wafuu" style={{ color: "var(--accent-gold-dark)" }}>—神無子</p>
         </div>
       ) : (
         <>
@@ -145,7 +142,8 @@ export function CollectionView({ items }: { items: Item[] }) {
       {/* アイテム詳細モーダル */}
       {selectedItem && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center backdrop-blur-sm"
+          style={{ background: "rgba(42,37,32,0.42)" }}
           onClick={() => setSelectedItem(null)}
         >
           <div

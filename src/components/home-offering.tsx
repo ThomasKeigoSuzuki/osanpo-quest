@@ -62,12 +62,12 @@ export function HomeOfferingButton() {
 
   if (phase === "reveal") {
     return (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95">
-        <div className="relative mx-auto h-[300px] w-[260px] overflow-hidden rounded-2xl" style={{ border: "2px solid var(--color-gold)", boxShadow: "0 0 60px rgba(232,184,73,0.4)" }}>
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center" style={{ background: "linear-gradient(180deg, rgba(247,242,232,0.97) 0%, rgba(241,234,216,0.98) 50%, rgba(237,228,211,0.98) 100%)" }}>
+        <div className="relative mx-auto h-[300px] w-[260px] overflow-hidden rounded-2xl" style={{ border: "2px solid var(--accent-gold)", boxShadow: "0 0 60px rgba(217,164,65,0.4)" }}>
           <MisuOverlay stage={misuStage} characterSrc="/shinako-full.webp" characterAlt="シナコ" type="shinako" />
         </div>
-        <p className="font-wafuu mt-6 text-xl font-bold text-gold animate-[starGlow_1.5s_ease-in-out_infinite]">✨ シナコが姿を現した！</p>
-        <p className="mt-3 max-w-[280px] text-center text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
+        <p className="font-wafuu mt-6 text-xl font-bold animate-[starGlow_1.5s_ease-in-out_infinite]" style={{ color: "var(--accent-gold-dark)" }}>✨ シナコが姿を現した！</p>
+        <p className="mt-3 max-w-[280px] text-center text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
           「これがあたしよ。あんたにだけ見せてあげるんだから。…光栄に思いなさい」
         </p>
       </div>
@@ -79,16 +79,17 @@ export function HomeOfferingButton() {
       <button
         onClick={() => setShowModal(true)}
         className="z-20 w-full rounded-xl py-2.5 text-center text-xs font-bold transition active:scale-[0.97]"
-        style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))", color: "var(--color-bg-primary)", boxShadow: "0 2px 12px rgba(232,184,73,0.4)" }}
+        style={{ background: "linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light))", color: "var(--text-primary)", boxShadow: "0 4px 14px rgba(217,164,65,0.35)" }}
       >
         🎁 奉納して御簾を上げる
       </button>
 
       {showModal && (
         <div className="fixed inset-0 z-[100] flex flex-col" onClick={() => phase === "select" && setShowModal(false)}>
-          {/* 背景: 神社画像 + 暗いオーバーレイ */}
-          <img src="/bg-shrine.webp" alt="" className="absolute inset-0 h-full w-full object-cover" style={{ filter: "brightness(0.15) saturate(0.5)" }} />
-          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center top, rgba(232,184,73,0.08) 0%, transparent 60%)" }} />
+          {/* 背景: 神社画像 + 明るいオーバーレイ */}
+          <img src="/bg-shrine.webp" alt="" className="absolute inset-0 h-full w-full object-cover" style={{ filter: "brightness(1.05) saturate(0.85)", opacity: 0.45 }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(247,242,232,0.7) 0%, rgba(241,234,216,0.9) 60%, rgba(237,228,211,0.95) 100%)" }} />
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center top, rgba(217,164,65,0.15) 0%, transparent 65%)" }} />
 
           <div className="relative z-10 flex flex-1 flex-col" onClick={(e) => e.stopPropagation()}>
 
@@ -114,8 +115,8 @@ export function HomeOfferingButton() {
                   <div className="absolute inset-0 animate-[spin_3s_linear_infinite] rounded-full border-2 border-[var(--color-gold)] border-t-transparent" />
                 </div>
               ) : items.length === 0 ? (
-                <p className="text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
-                  奉納できるアイテムがありません。<br />クエストで冒険しよう！
+                <p className="text-center text-sm leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+                  奉納できる贈り物はまだありません。<br />一歩歩いて、今日の一つを探しにいこう。
                 </p>
               ) : (
                 <>
@@ -124,17 +125,17 @@ export function HomeOfferingButton() {
                     {/* 奉納アニメーション */}
                     <div className={`transition-all duration-[1.5s] ease-out ${phase === "offering" ? "-translate-y-20 scale-90 opacity-0" : ""}`}>
                       {/* アイテムカード */}
-                      <div className="overflow-hidden rounded-xl" style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(232,184,73,0.25)" }}>
+                      <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,253,247,0.92)", border: "1px solid rgba(217,164,65,0.32)", boxShadow: "0 6px 18px rgba(42,37,32,0.1)" }}>
                         <div className="p-4">
                           {selectedItem?.image_url ? (
-                            <img src={selectedItem.image_url} alt={selectedItem.name} className="mx-auto h-24 w-24 rounded-lg object-cover" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.6)" }} />
+                            <img src={selectedItem.image_url} alt={selectedItem.name} className="mx-auto h-24 w-24 rounded-lg object-cover" style={{ boxShadow: "0 4px 14px rgba(42,37,32,0.12)" }} />
                           ) : (
-                            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-lg" style={{ background: "rgba(232,184,73,0.08)" }}>
+                            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-lg" style={{ background: "rgba(217,164,65,0.12)" }}>
                               <span className="text-3xl">✨</span>
                             </div>
                           )}
-                          <p className="mt-2.5 text-center text-sm font-bold text-[var(--color-text)]">{selectedItem?.name}</p>
-                          <p className="mt-0.5 text-center text-xs" style={{ color: "var(--color-gold)" }}>{"★".repeat(selectedItem?.rarity || 1)}</p>
+                          <p className="mt-2.5 text-center text-sm font-bold" style={{ color: "var(--text-primary)" }}>{selectedItem?.name}</p>
+                          <p className="mt-0.5 text-center text-xs" style={{ color: "var(--accent-gold-dark)" }}>{"★".repeat(selectedItem?.rarity || 1)}</p>
                         </div>
                       </div>
 
@@ -166,11 +167,11 @@ export function HomeOfferingButton() {
 
             {/* リアクション */}
             {phase === "reaction" && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)" }}>
+              <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm" style={{ background: "rgba(247,242,232,0.85)" }}>
                 <div className="animate-[fadeInUp_0.5s_ease-out] text-center px-8">
                   <p className="text-3xl">🎐</p>
-                  <p className="font-wafuu mt-3 text-base text-gold">「{reactionQuote}」</p>
-                  <p className="mt-2 text-xs" style={{ color: "var(--color-text-muted)" }}>— シナコ</p>
+                  <p className="font-wafuu mt-3 text-base" style={{ color: "var(--accent-gold-dark)" }}>「{reactionQuote}」</p>
+                  <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>— シナコ</p>
                 </div>
               </div>
             )}
@@ -178,15 +179,15 @@ export function HomeOfferingButton() {
             {/* 下部ボタン */}
             <div className="px-6 pb-4 safe-bottom">
               {phase === "select" && items.length > 0 && (
-                <button onClick={handleOffer} className="w-full rounded-xl py-3.5 text-center text-sm font-bold transition active:scale-[0.97]" style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold-light))", color: "var(--color-bg-primary)", boxShadow: "0 4px 20px rgba(232,184,73,0.35)" }}>
+                <button onClick={handleOffer} className="w-full rounded-xl py-3.5 text-center text-sm font-bold transition active:scale-[0.97]" style={{ background: "linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light))", color: "var(--text-primary)", boxShadow: "0 6px 20px rgba(217,164,65,0.38)" }}>
                   奉納する
                 </button>
               )}
               {phase === "select" && (
-                <button onClick={() => setShowModal(false)} className="mt-2 w-full py-2.5 text-center text-xs" style={{ color: "var(--color-text-muted)" }}>戻る</button>
+                <button onClick={() => setShowModal(false)} className="mt-2 w-full py-2.5 text-center text-xs" style={{ color: "var(--text-muted)" }}>戻る</button>
               )}
               {phase === "offering" && (
-                <p className="py-3 text-center text-xs animate-pulse" style={{ color: "var(--color-gold)" }}>奉納しています…</p>
+                <p className="py-3 text-center text-xs animate-pulse" style={{ color: "var(--accent-gold-dark)" }}>奉納しています…</p>
               )}
             </div>
           </div>

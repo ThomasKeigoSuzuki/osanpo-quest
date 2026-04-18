@@ -112,16 +112,16 @@ export function LoginForm() {
 
   // リセット警告オーバーレイ
   const resetOverlay = resetStep >= 0 && (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-sm px-6">
-      <div className="w-full max-w-sm rounded-2xl p-6 text-center" style={{ background: "rgba(26,26,46,0.98)", border: "1px solid rgba(232,184,73,0.3)" }}>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center px-6" style={{ background: "rgba(42,37,32,0.55)", backdropFilter: "blur(6px)" }}>
+      <div className="w-full max-w-sm rounded-2xl p-6 text-center" style={{ background: "rgba(255,253,247,0.98)", border: "1px solid rgba(217,164,65,0.3)", boxShadow: "0 12px 40px rgba(42,37,32,0.2)" }}>
         <p className="text-3xl">⚠️</p>
-        <p className="font-wafuu mt-3 text-base font-bold" style={{ color: "var(--color-danger)" }}>
+        <p className="font-wafuu mt-3 text-base font-bold" style={{ color: "var(--accent-shu)" }}>
           {RESET_WARNINGS[resetStep].title}
         </p>
-        <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
+        <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
           {RESET_WARNINGS[resetStep].message}
         </p>
-        <p className="mt-1 text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+        <p className="mt-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
           確認 {resetStep + 1} / 3
         </p>
         <div className="mt-5 space-y-2">
@@ -129,14 +129,14 @@ export function LoginForm() {
             onClick={handleReset}
             disabled={resetting}
             className="w-full rounded-xl py-3 text-sm font-bold transition active:scale-[0.97]"
-            style={{ background: "var(--color-danger)", color: "white" }}
+            style={{ background: "var(--accent-shu)", color: "#FFFDF7" }}
           >
             {resetting ? "削除中..." : resetStep < 2 ? "次へ" : "はじめからやり直す"}
           </button>
           <button
             onClick={() => setResetStep(-1)}
             className="w-full py-2 text-sm"
-            style={{ color: "var(--color-text-muted)" }}
+            style={{ color: "var(--text-muted)" }}
           >
             やめる
           </button>
@@ -150,12 +150,12 @@ export function LoginForm() {
       {resetOverlay}
 
       {/* z-0: 背景 */}
-      <img src="/bg-shrine.webp" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" style={{ filter: "brightness(0.3) saturate(0.7)" }} />
-      <div className="absolute inset-x-0 bottom-0 z-[1] h-[60%]" style={{ background: "linear-gradient(to bottom, transparent, rgba(26,26,46,0.97) 65%)" }} />
+      <img src="/bg-shrine.webp" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" style={{ filter: "brightness(1.1) saturate(0.85)", opacity: 0.6 }} />
+      <div className="absolute inset-0 z-[1]" style={{ background: "linear-gradient(180deg, rgba(247,242,232,0.4) 0%, rgba(247,242,232,0.75) 55%, rgba(247,242,232,0.95) 85%)" }} />
 
       {/* 風光粒 */}
       {[20, 35, 55, 72, 88].map((left, i) => (
-        <div key={i} className="absolute z-[2] h-1.5 w-1.5 rounded-full bg-white" style={{ bottom: "15%", left: `${left}%`, opacity: 0, animation: `windParticle 3s ease-in-out infinite ${i * 1.1}s` }} />
+        <div key={i} className="absolute z-[2] h-1.5 w-1.5 rounded-full" style={{ bottom: "15%", left: `${left}%`, background: "var(--accent-gold-light)", opacity: 0, animation: `windParticle 3s ease-in-out infinite ${i * 1.1}s` }} />
       ))}
 
       {/* z-5: シナコ */}
@@ -165,12 +165,12 @@ export function LoginForm() {
 
       {/* z-10: タイトル */}
       <div className="absolute left-0 right-0 z-10 text-center transition-all duration-1000" style={{ bottom: isLoggedIn ? "35%" : "30%", opacity: showTitle ? 1 : 0, transform: showTitle ? "translateY(0)" : "translateY(12px)" }}>
-        <div className="mx-auto h-px w-[200px]" style={{ background: "rgba(232,184,73,0.5)" }} />
-        <h1 className="font-wafuu mt-4 text-3xl font-bold text-gold" style={{ animation: showTitle ? "starGlow 2s ease-in-out infinite" : undefined }}>
+        <div className="mx-auto h-px w-[200px]" style={{ background: "rgba(217,164,65,0.55)" }} />
+        <h1 className="font-wafuu mt-4 text-3xl font-bold" style={{ color: "var(--accent-gold-dark)", animation: showTitle ? "starGlow 2s ease-in-out infinite" : undefined }}>
           おさんぽクエスト
         </h1>
-        <p className="mt-2 text-xs" style={{ color: "rgba(232,184,73,0.8)" }}>忘れられた風の神と、今日を歩く</p>
-        <div className="mx-auto mt-4 h-px w-[200px]" style={{ background: "rgba(232,184,73,0.5)" }} />
+        <p className="mt-2 text-xs" style={{ color: "var(--text-secondary)" }}>風の神さまと、今日を歩こう</p>
+        <div className="mx-auto mt-4 h-px w-[200px]" style={{ background: "rgba(217,164,65,0.55)" }} />
       </div>
 
       {/* z-20: ボタン群 */}
@@ -181,14 +181,14 @@ export function LoginForm() {
             <button
               onClick={() => router.push("/")}
               className="w-full rounded-xl py-4 text-center text-lg font-bold transition active:scale-[0.97]"
-              style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold-light))", color: "var(--color-bg-primary)", boxShadow: "0 4px 24px rgba(232,184,73,0.5)" }}
+              style={{ background: "linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light))", color: "var(--text-primary)", boxShadow: "0 6px 20px rgba(217,164,65,0.38)" }}
             >
               つづきから
             </button>
             <button
               onClick={() => setResetStep(0)}
               className="mt-3 w-full rounded-xl py-3 text-center text-sm font-medium transition active:scale-[0.97]"
-              style={{ background: "rgba(255,255,255,0.08)", color: "var(--color-text-muted)", border: "1px solid rgba(255,255,255,0.1)" }}
+              style={{ background: "rgba(255,253,247,0.72)", color: "var(--text-muted)", border: "1px solid rgba(217,164,65,0.22)" }}
             >
               はじめから
             </button>
@@ -200,14 +200,14 @@ export function LoginForm() {
               onClick={handleAnonymousLogin}
               disabled={loading}
               className="w-full rounded-xl py-4 text-center text-lg font-bold transition active:scale-[0.97]"
-              style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold-light))", color: "var(--color-bg-primary)", boxShadow: "0 4px 24px rgba(232,184,73,0.5)" }}
+              style={{ background: "linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light))", color: "var(--text-primary)", boxShadow: "0 6px 20px rgba(217,164,65,0.38)" }}
             >
               {loading ? "準備中..." : "はじめる"}
             </button>
             <button
               onClick={handleGoogleLogin}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition active:scale-[0.97]"
-              style={{ background: "rgba(255,255,255,0.08)", color: "var(--color-text)", border: "1px solid rgba(255,255,255,0.15)" }}
+              style={{ background: "rgba(255,253,247,0.85)", color: "var(--text-primary)", border: "1px solid rgba(217,164,65,0.28)" }}
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -217,13 +217,13 @@ export function LoginForm() {
               </svg>
               Googleでログイン
             </button>
-            <button onClick={() => setShowEmail(!showEmail)} className="mt-2 w-full py-2 text-center text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+            <button onClick={() => setShowEmail(!showEmail)} className="mt-2 w-full py-2 text-center text-[11px]" style={{ color: "var(--text-muted)" }}>
               メールで続ける
             </button>
             {showEmail && (
               <form onSubmit={handleMagicLink} className="mt-2 flex gap-2" style={{ animation: "dialogueFadeIn 0.3s ease-out" }}>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="メールアドレス" required className="min-w-0 flex-1 rounded-lg px-3 py-2.5 text-xs outline-none" style={{ background: "rgba(0,0,0,0.4)", color: "var(--color-text)", border: "1px solid var(--color-border)" }} />
-                <button type="submit" disabled={loading} className="shrink-0 rounded-lg px-4 py-2.5 text-xs font-bold" style={{ background: "var(--color-gold)", color: "var(--color-bg-primary)" }}>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="メールアドレス" required className="min-w-0 flex-1 rounded-lg px-3 py-2.5 text-xs outline-none" style={{ background: "rgba(255,253,247,0.9)", color: "var(--text-primary)", border: "1px solid rgba(217,164,65,0.3)" }} />
+                <button type="submit" disabled={loading} className="shrink-0 rounded-lg px-4 py-2.5 text-xs font-bold" style={{ background: "var(--accent-gold)", color: "var(--text-primary)" }}>
                   {loading ? "..." : "送信"}
                 </button>
               </form>

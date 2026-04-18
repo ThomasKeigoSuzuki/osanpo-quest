@@ -3,9 +3,13 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-const GOLD = "#e8b849";
-const BG1 = "#1a1a2e";
-const BG2 = "#16213e";
+const GOLD = "#D9A441";
+const GOLD_DARK = "#B88730";
+const BG1 = "#FFFDF7";
+const BG2 = "#F1EAD8";
+const INK = "#2A2520";
+const INK_MUTED = "#5C5248";
+const INK_SOFT = "#8F8578";
 
 export async function GET(req: NextRequest) {
   const dataParam = req.nextUrl.searchParams.get("data");
@@ -58,8 +62,9 @@ export async function GET(req: NextRequest) {
           height: 630,
           display: "flex",
           background: `linear-gradient(135deg, ${BG1} 0%, ${BG2} 100%)`,
-          border: `2px solid ${GOLD}40`,
+          border: `2px solid ${GOLD}55`,
           fontFamily: fontData ? "Noto Sans JP" : "sans-serif",
+          color: INK,
         }}
       >
         {/* 左: アイテム画像 */}
@@ -115,7 +120,7 @@ export async function GET(req: NextRequest) {
           }}
         >
           {/* ロゴ */}
-          <div style={{ display: "flex", fontSize: 22, color: GOLD, marginBottom: 16 }}>
+          <div style={{ display: "flex", fontSize: 22, color: GOLD_DARK, marginBottom: 16 }}>
             おさんぽクエスト
           </div>
 
@@ -124,7 +129,7 @@ export async function GET(req: NextRequest) {
             style={{
               fontSize: 48,
               fontWeight: 700,
-              color: "#f0f0f0",
+              color: INK,
               lineHeight: 1.2,
               marginBottom: 12,
             }}
@@ -142,7 +147,7 @@ export async function GET(req: NextRequest) {
             style={{
               display: "flex",
               fontSize: 18,
-              color: "#ffffff90",
+              color: INK_MUTED,
               marginBottom: 8,
             }}
           >
@@ -154,7 +159,7 @@ export async function GET(req: NextRequest) {
             style={{
               display: "flex",
               fontSize: 18,
-              color: "#ffffff60",
+              color: INK_SOFT,
               marginBottom: 40,
             }}
           >
@@ -163,7 +168,7 @@ export async function GET(req: NextRequest) {
           </div>
 
           {/* URL */}
-          <div style={{ display: "flex", fontSize: 16, color: GOLD }}>
+          <div style={{ display: "flex", fontSize: 16, color: GOLD_DARK }}>
             osanpo-quest.vercel.app
           </div>
         </div>

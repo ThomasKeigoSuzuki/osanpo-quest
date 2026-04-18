@@ -43,6 +43,8 @@ export default function QuestProgressPage() {
 
   const routeBuffer = useRef<{ lat: number; lng: number; timestamp: string }[]>([]);
   const watchId = useRef<number | null>(null);
+  const hasFixRef = useRef(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let retries = 0;
@@ -67,6 +69,7 @@ export default function QuestProgressPage() {
     if (!navigator.geolocation) { setGeoError("位置情報がサポートされていません"); return; }
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
+        hasFixRef.current = true;
         setGeoError("");
         const np = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserPos(np); setRoutePoints((p) => [...p, np]);
@@ -78,11 +81,19 @@ export default function QuestProgressPage() {
         }
         routeBuffer.current.push({ ...np, timestamp: new Date().toISOString() });
       },
-      (e) => setGeoError(e.code === 1 ? "位置情報が許可されていません" : e.code === 2 ? "GPSを確認してください" : "タイムアウトしました"),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+      (e) => {
+        // 許可拒否は常にブロッキング表示。それ以外(POSITION_UNAVAILABLE/TIMEOUT)は
+        // 初回フィックス取得前のみフルエラー化し、以降は無視して watchPosition の再試行に任せる。
+        if (e.code === 1) {
+          setGeoError("位置情報が許可されていません");
+        } else if (!hasFixRef.current) {
+          setGeoError(e.code === 2 ? "GPSを確認してください" : "位置情報の取得に時間がかかっています");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
     );
     return () => { if (watchId.current !== null) navigator.geolocation.clearWatch(watchId.current); };
-  }, [quest]);
+  }, [quest, retryKey]);
 
   useEffect(() => {
     if (!quest) return;
@@ -175,11 +186,11 @@ export default function QuestProgressPage() {
               </span>
             </div>
             <button onClick={() => setMissionExpanded((v) => !v)} aria-expanded={missionExpanded} className="mt-1.5 w-full text-left">
-              <div className="rounded-xl bg-[rgba(0,0,0,0.3)] px-3 py-2.5">
-                <p className={`text-sm leading-relaxed text-[var(--color-text)] transition-all duration-300 ${missionExpanded ? "" : "line-clamp-1"}`}>
+              <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(237,228,211,0.75)", border: "1px solid rgba(217,164,65,0.18)" }}>
+                <p className={`text-sm leading-relaxed transition-all duration-300 ${missionExpanded ? "" : "line-clamp-1"}`} style={{ color: "var(--text-primary)" }}>
                   {quest.mission_text}
                 </p>
-                <span className="mt-1 block text-right text-[10px] text-[var(--color-gold)] opacity-60">
+                <span className="mt-1 block text-right text-[10px] opacity-70" style={{ color: "var(--accent-gold-dark)" }}>
                   {missionExpanded ? "タップで閉じる" : "タップで全文表示"}
                 </span>
               </div>
@@ -190,13 +201,7 @@ export default function QuestProgressPage() {
 
       {/* ミニマップ */}
       <div className="flex flex-1 flex-col items-center justify-center">
-        {geoError ? (
-          <div className="w-full max-w-xs px-4 text-center">
-            <p className="text-4xl">📡</p>
-            <p className="mt-4 text-sm text-[var(--color-text-sub)]">{geoError}</p>
-            <button onClick={() => { setGeoError(""); setQuest({ ...quest }); }} className="btn-secondary mt-4">位置情報を再取得</button>
-          </div>
-        ) : isTutorialQuest ? (
+        {isTutorialQuest ? (
           /* チュートリアル: マップ不要、即クリア可能 */
           <div className="text-center px-8">
             <p className="text-4xl">🌟</p>
@@ -207,13 +212,40 @@ export default function QuestProgressPage() {
           </div>
         ) : userPos ? (
           <>
-            <MiniMap lat={userPos.lat} lng={userPos.lng} bearing={bearing} distance={distance} direction={bearingToDir(bearing)} isInRange={isInRange} routePoints={routePoints} />
+            <MiniMap
+              lat={userPos.lat}
+              lng={userPos.lng}
+              bearing={bearing}
+              distance={distance}
+              direction={bearingToDir(bearing)}
+              isInRange={isInRange}
+              routePoints={routePoints}
+              goalLat={quest.goal_lat}
+              goalLng={quest.goal_lng}
+              goalRadiusMeters={quest.goal_radius_meters}
+            />
+            {geoError && (
+              <div className="mt-2 rounded-full px-3 py-1.5 text-[11px] backdrop-blur-md" style={{ background: "rgba(255,253,247,0.88)", color: "var(--text-secondary)", border: "1px solid rgba(217,164,65,0.25)" }}>
+                📡 {geoError}
+              </div>
+            )}
             {isInRange && (
               <div className="mt-3 animate-[fadeInUp_0.5s_ease-out] text-center">
                 <p className="animate-pulse text-sm font-bold text-[var(--color-success)]">「達成！」ボタンを押してクリアしよう</p>
               </div>
             )}
           </>
+        ) : geoError ? (
+          <div className="w-full max-w-xs px-4 text-center">
+            <p className="text-4xl">📡</p>
+            <p className="mt-4 text-sm text-[var(--color-text-sub)]">{geoError}</p>
+            <button
+              onClick={() => { setGeoError(""); hasFixRef.current = false; setRetryKey((k) => k + 1); }}
+              className="btn-secondary mt-4"
+            >
+              位置情報を再取得
+            </button>
+          </div>
         ) : (
           <div className="text-center">
             <div className="relative mx-auto h-12 w-12">
@@ -229,7 +261,7 @@ export default function QuestProgressPage() {
         {error && <p className="mb-3 text-center text-sm text-[var(--color-danger)]" role="alert">{error}</p>}
         <button onClick={handleComplete} disabled={(!isInRange && !isTutorialQuest) || completing}
           className={`min-h-[52px] w-full rounded-xl text-center text-lg font-bold transition active:scale-[0.97] ${
-            (isInRange || isTutorialQuest) ? "btn-primary" : "cursor-not-allowed rounded-xl bg-[rgba(255,255,255,0.08)] py-3.5 text-[var(--color-text-muted)]"
+            (isInRange || isTutorialQuest) ? "btn-primary" : "cursor-not-allowed rounded-xl bg-[rgba(237,228,211,0.75)] py-3.5 text-[var(--text-muted)] border border-[rgba(217,164,65,0.2)]"
           }`}
         >
           {completing ? "アイテム生成中..." : isTutorialQuest ? "ミッション達成！" : isInRange ? "達成！" : "ゴールへ向かおう"}

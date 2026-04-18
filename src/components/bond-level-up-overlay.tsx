@@ -20,7 +20,7 @@ export function BondLevelUpOverlay({ newLevel, levelName, onClose }: Props) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md" style={{ background: "linear-gradient(180deg, rgba(247,242,232,0.85) 0%, rgba(241,234,216,0.9) 50%, rgba(237,228,211,0.95) 100%)" }}>
       <div className="relative h-[500px] w-[340px]">
         <img
           src="/shinako-full.webp"
@@ -66,7 +66,8 @@ export function BondLevelUpOverlay({ newLevel, levelName, onClose }: Props) {
 
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1 text-xs text-white/70"
+        className="absolute right-4 top-4 rounded-full px-3 py-1 text-xs transition active:scale-95"
+        style={{ background: "rgba(255,253,247,0.85)", color: "var(--text-muted)", border: "1px solid rgba(217,164,65,0.25)" }}
       >
         スキップ
       </button>
@@ -76,8 +77,9 @@ export function BondLevelUpOverlay({ newLevel, levelName, onClose }: Props) {
           onClick={onClose}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 rounded-full px-8 py-3 text-sm font-bold"
           style={{
-            background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))",
-            color: "var(--color-bg-primary)",
+            background: "linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light))",
+            color: "var(--text-primary)",
+            boxShadow: "0 8px 20px rgba(217,164,65,0.35)",
             animation: "dialogueFadeIn 0.5s ease-out 2s both",
           }}
         >

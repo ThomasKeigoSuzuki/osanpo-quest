@@ -1,5 +1,9 @@
 import { getPlayerAddressByBondLevel, getShinakoFirstPersonByBondLevel } from "@/lib/shinako-dialogue";
 
+function sanitize(input: string, maxLen = 100): string {
+  return input.replace(/[\n\r]/g, " ").replace(/[【】]/g, "").trim().slice(0, maxLen);
+}
+
 /** シナコ（放浪神）用 システムプロンプト */
 export const SHINAKO_SYSTEM_PROMPT = `あなたは「シナコ」、風を司る放浪の神様です。
 
@@ -51,23 +55,35 @@ export const SHINAKO_SYSTEM_PROMPT = `あなたは「シナコ」、風を司る
 
 JSONのみを出力してください。説明文は不要です。`;
 
+/** 距離プリファレンスごとの目標距離範囲（メートル） */
+export const DISTANCE_PREFERENCE_RANGES = {
+  short: { min: 80, max: 180, label: "短め（近場）" },
+  medium: { min: 180, max: 400, label: "標準（徒歩5〜10分）" },
+  long: { min: 400, max: 800, label: "長め（徒歩10〜20分）" },
+} as const;
+
+export type DistancePreferenceKey = keyof typeof DISTANCE_PREFERENCE_RANGES;
+
 /** シナコ用 ユーザープロンプト */
 export function buildShinakoUserPrompt(
   lat: number,
   lng: number,
   areaName: string,
   bondInfo?: { level: number; levelName: string; toneModifier: string },
-  playerName?: string
+  playerName?: string,
+  distancePreference?: DistancePreferenceKey
 ): string {
   const now = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+  const safeArea = sanitize(areaName);
   let prompt = `【現在地情報】
 緯度: ${lat}
 経度: ${lng}
-地名: ${areaName}
+地名: ${safeArea}
 現在時刻: ${now}`;
 
   if (bondInfo) {
-    const address = getPlayerAddressByBondLevel(bondInfo.level, playerName);
+    const safeName = playerName ? sanitize(playerName, 20) : undefined;
+    const address = getPlayerAddressByBondLevel(bondInfo.level, safeName);
     const firstPerson = getShinakoFirstPersonByBondLevel(bondInfo.level);
     prompt += `\n\n【この冒険者との絆レベル: ${bondInfo.level}（${bondInfo.levelName}）】
 ${bondInfo.toneModifier}
@@ -77,7 +93,13 @@ ${bondInfo.toneModifier}
 - 絆Lv${bondInfo.level}に応じた感情の温度感`;
   }
 
-  prompt += `\n\nこの場所・時間にふさわしいミッションを1つ生成してください。地名「${areaName}」をセリフに必ず含めてください。`;
+  if (distancePreference) {
+    const range = DISTANCE_PREFERENCE_RANGES[distancePreference];
+    prompt += `\n\n【冒険者の歩く距離のこのみ: ${range.label}】
+ゴール地点は現在地から ${range.min}m〜${range.max}m の範囲に設定してください（この指示を最優先してください）。`;
+  }
+
+  prompt += `\n\nこの場所・時間にふさわしいミッションを1つ生成してください。地名「${safeArea}」をセリフに必ず含めてください。`;
   return prompt;
 }
 
@@ -94,9 +116,9 @@ export function buildItemGenerationPrompt(
 
 【クエスト情報】
 神様: シナコ（放浪神）
-ミッション内容: ${missionText}
-ミッションタイプ: ${missionType}
-エリア: ${areaName}
+ミッション内容: ${sanitize(missionText, 300)}
+ミッションタイプ: ${sanitize(missionType, 20)}
+エリア: ${sanitize(areaName)}
 
 【アイテム生成ルール】
 - 名前: 漢字＋ひらがなで4〜8文字、詩的に
@@ -140,8 +162,8 @@ export function buildCompletionMessagePrompt(
   return `あなたは放浪の神様「シナコ」です。
 口調はカジュアル。一人称は「あたし」。
 
-冒険者がミッション「${missionText}」をクリアしました。
-ご褒美として「${itemName}」を渡します。
+冒険者がミッション「${sanitize(missionText, 300)}」をクリアしました。
+ご褒美として「${sanitize(itemName, 50)}」を渡します。
 
 クリアを祝福する台詞を1〜2文で生成してください。台詞のみを出力してください。`;
 }

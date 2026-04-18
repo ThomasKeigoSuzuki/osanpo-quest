@@ -1,84 +1,148 @@
 @import "tailwindcss";
 
 :root {
-  /* ===== Fantasy Dark Theme ===== */
-  --color-bg-primary: #1a1a2e;
-  --color-bg-secondary: #16213e;
-  --color-bg-tertiary: #0f3460;
-  --color-gold: #e8b849;
-  --color-gold-light: #f4d03f;
-  --color-gold-dark: #c9982e;
-  --color-teal: #4ecdc4;
-  --color-teal-dark: #3ab5ad;
-  --color-accent: #f4a261;
-  --color-danger: #e76f51;
-  --color-success: #2ec4b6;
-  --color-text: #f0f0f0;
-  --color-text-sub: rgba(255, 255, 255, 0.6);
-  --color-text-muted: rgba(255, 255, 255, 0.35);
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-card: rgba(255, 255, 255, 0.08);
-  --color-card-hover: rgba(255, 255, 255, 0.12);
+  /* =====================================================================
+   * Design Tokens — 朝の神社の境内 / Bright Morning Shrine
+   * Palette: 生成り × 浅葱 × 山吹 (Kinari × Asagi × Yamabuki)
+   * ===================================================================== */
+
+  /* ---- Surfaces ---- */
+  --surface-base: #F7F2E8;        /* 生成り — アプリ背景 */
+  --surface-raised: #FFFDF7;      /* 和紙の白 — カード */
+  --surface-sunken: #EDE4D3;      /* 陰 — 奥まった面 */
+  --surface-overlay: rgba(42, 37, 32, 0.45); /* モーダル背景 */
+
+  /* ---- Text ---- */
+  --text-primary: #2A2520;        /* 墨 */
+  --text-secondary: #5C5248;      /* 薄墨 */
+  --text-muted: #8F8578;          /* かすみ */
+  --text-inverse: #FFFDF7;        /* 紙の白 */
+
+  /* ---- Accents ---- */
+  --accent-gold: #D9A441;         /* 山吹 — 主アクセント */
+  --accent-gold-light: #E8C06D;
+  --accent-gold-dark: #B88730;
+  --accent-asagi: #6BA7B5;        /* 浅葱 — 副アクセント（水・空） */
+  --accent-asagi-light: #9CC3CC;
+  --accent-asagi-dark: #4F8894;
+  --accent-shu: #C65E4A;          /* 鳥居の朱 — 重要アクション限定 */
+  --accent-wakaba: #8FA86B;       /* 若草 — 達成・成功 */
+  --accent-sakura: #E8B4B8;       /* 桜鼠 — 絆・温かみ */
+
+  /* ---- Status ---- */
+  --status-warn: #D98C3A;
+  --status-error: #B04A38;
+  --status-success: #8FA86B;
+
+  /* ---- Borders ---- */
+  --border-soft: rgba(42, 37, 32, 0.08);
+  --border-strong: rgba(42, 37, 32, 0.16);
+
+  /* ---- Shadows ---- */
+  --shadow-card: 0 2px 12px rgba(42, 37, 32, 0.04);
+  --shadow-raised: 0 4px 20px rgba(42, 37, 32, 0.08);
+  --shadow-gold: 0 4px 14px rgba(217, 164, 65, 0.25);
+
+  /* ---- Motion ---- */
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fine: 180ms;
+  --duration-base: 260ms;
+  --duration-arrive: 420ms;
+  --duration-scene: 900ms;
+
+  /* ---- Radii ---- */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  /* =====================================================================
+   * Legacy aliases — 既存コンポーネントが参照する変数名を新トークンに接続
+   * 段階的に新トークンへ移行予定。削除しないこと。
+   * ===================================================================== */
+  --color-bg-primary: var(--surface-base);
+  --color-bg-secondary: var(--surface-sunken);
+  --color-bg-tertiary: var(--surface-raised);
+  --color-gold: var(--accent-gold);
+  --color-gold-light: var(--accent-gold-light);
+  --color-gold-dark: var(--accent-gold-dark);
+  --color-teal: var(--accent-asagi);
+  --color-teal-dark: var(--accent-asagi-dark);
+  --color-accent: var(--accent-sakura);
+  --color-danger: var(--status-error);
+  --color-success: var(--accent-wakaba);
+  --color-text: var(--text-primary);
+  --color-text-sub: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-soft);
+  --color-card: var(--surface-raised);
+  --color-card-hover: #F9F4EC;
 }
 
 @theme inline {
-  --color-background: var(--color-bg-primary);
-  --color-foreground: var(--color-text);
+  --color-background: var(--surface-base);
+  --color-foreground: var(--text-primary);
   --font-sans: var(--font-geist-sans);
 }
 
 /* ===== Body ===== */
 body {
-  background: linear-gradient(145deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-tertiary) 100%);
+  background:
+    radial-gradient(ellipse at top, #FBF7EE 0%, transparent 55%),
+    linear-gradient(180deg, var(--surface-base) 0%, #F1EAD8 100%);
   background-attachment: fixed;
-  color: var(--color-text);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-zen-maru), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
 }
 
 /* ===== Utility Classes ===== */
 
-/* Glass morphism card */
+/* Paper-like card — かつての glass を紙調に置き換え */
 .card-glass {
-  background: var(--color-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
 }
 .card-glass:hover {
-  background: var(--color-card-hover);
+  background: #F9F4EC;
 }
 
-/* Gold gradient text */
+/* Gold gradient text (山吹のグラデーション) */
 .text-gold {
-  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+  background: linear-gradient(135deg, var(--accent-gold-dark) 0%, var(--accent-gold) 60%, var(--accent-gold-light) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  color: transparent;
 }
 
-/* Fantasy gradient background */
+/* Morning shrine gradient background */
 .bg-fantasy {
-  background: linear-gradient(145deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-tertiary) 100%);
+  background:
+    radial-gradient(ellipse at top, #FBF7EE 0%, transparent 55%),
+    linear-gradient(180deg, var(--surface-base) 0%, #F1EAD8 100%);
   background-attachment: fixed;
 }
 
-/* Gold glow */
+/* Warm glow */
 .glow-gold {
-  box-shadow: 0 0 20px rgba(232, 184, 73, 0.3), 0 0 60px rgba(232, 184, 73, 0.1);
+  box-shadow: 0 0 16px rgba(217, 164, 65, 0.22), 0 0 48px rgba(217, 164, 65, 0.08);
 }
 
-/* Primary button — gold gradient + shimmer */
+/* Primary button — 山吹のグラデーション + 墨文字 */
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-gold-dark) 0%, var(--color-gold) 50%, var(--color-gold-light) 100%);
-  color: #1a1a2e;
+  background: linear-gradient(135deg, var(--accent-gold-dark) 0%, var(--accent-gold) 50%, var(--accent-gold-light) 100%);
+  color: var(--text-primary);
   font-weight: 700;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 14px 32px;
-  box-shadow: 0 2px 12px rgba(232, 184, 73, 0.3);
-  transition: all 0.2s;
+  box-shadow: var(--shadow-gold);
+  transition: all 0.2s var(--ease-out-expo);
   position: relative;
   overflow: hidden;
 }
@@ -86,20 +150,20 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
+  background: linear-gradient(105deg, transparent 40%, rgba(255,253,247,0.35) 50%, transparent 60%);
   transform: translateX(-100%);
   animation: btnShimmer 3s ease-in-out infinite;
 }
 .btn-primary:hover {
-  box-shadow: 0 4px 20px rgba(232, 184, 73, 0.5);
+  box-shadow: 0 6px 22px rgba(217, 164, 65, 0.35);
   transform: translateY(-1px);
 }
 .btn-primary:active {
   transform: scale(0.97);
 }
 .btn-primary:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.3);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
   box-shadow: none;
   cursor: not-allowed;
 }
@@ -107,18 +171,18 @@ body {
   display: none;
 }
 
-/* Secondary button */
+/* Secondary button — 浅葱色のアウトライン */
 .btn-secondary {
   background: transparent;
-  color: var(--color-teal);
+  color: var(--accent-asagi-dark);
   font-weight: 600;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 14px 32px;
-  border: 1px solid var(--color-teal);
-  transition: all 0.2s;
+  border: 1px solid var(--accent-asagi);
+  transition: all 0.2s var(--ease-out-expo);
 }
 .btn-secondary:hover {
-  background: rgba(78, 205, 196, 0.1);
+  background: rgba(107, 167, 181, 0.08);
 }
 .btn-secondary:active {
   transform: scale(0.97);
@@ -127,15 +191,15 @@ body {
 /* Ghost button */
 .btn-ghost {
   background: transparent;
-  color: var(--color-text-sub);
+  color: var(--text-secondary);
   font-weight: 500;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 12px 24px;
-  transition: all 0.2s;
+  transition: all 0.2s var(--ease-out-expo);
 }
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text);
+  background: rgba(42, 37, 32, 0.04);
+  color: var(--text-primary);
 }
 
 /* ===== Safe Area ===== */
@@ -179,8 +243,8 @@ body {
 }
 
 @keyframes glowRing {
-  0%, 100% { box-shadow: 0 0 8px rgba(232, 184, 73, 0.3); }
-  50%      { box-shadow: 0 0 20px rgba(232, 184, 73, 0.6); }
+  0%, 100% { box-shadow: 0 0 8px rgba(217, 164, 65, 0.25); }
+  50%      { box-shadow: 0 0 20px rgba(217, 164, 65, 0.5); }
 }
 
 @keyframes sparkle {
@@ -195,7 +259,7 @@ body {
 }
 
 @keyframes pulseRing {
-  0%   { transform: scale(0.5); opacity: 0.8; }
+  0%   { transform: scale(0.5); opacity: 0.6; }
   100% { transform: scale(1.8); opacity: 0; }
 }
 
@@ -215,8 +279,8 @@ body {
 }
 
 @keyframes starGlow {
-  0%, 100% { text-shadow: 0 0 4px rgba(232,184,73,0.5); }
-  50%      { text-shadow: 0 0 12px rgba(232,184,73,0.9); }
+  0%, 100% { text-shadow: 0 0 4px rgba(217, 164, 65, 0.4); }
+  50%      { text-shadow: 0 0 12px rgba(217, 164, 65, 0.75); }
 }
 
 @keyframes misuSway {
@@ -241,7 +305,7 @@ body {
 
 @keyframes windParticle {
   0%   { opacity: 0; transform: translate(0, 0) scale(0.5); }
-  50%  { opacity: 0.8; transform: translate(-20px, -30px) scale(1); }
+  50%  { opacity: 0.7; transform: translate(-20px, -30px) scale(1); }
   100% { opacity: 0; transform: translate(-40px, -60px) scale(0.3); }
 }
 
@@ -270,6 +334,25 @@ body {
 @keyframes shinakoFadeIn {
   0%   { opacity: 0; }
   100% { opacity: 1; }
+}
+
+/* 栞がふわっと舞い降りる（Phase 5 の完了画面用、先行投入） */
+@keyframes shioriDrift {
+  0%   { opacity: 0; transform: translate(20px, -40px) rotate(20deg); }
+  60%  { opacity: 1; transform: translate(-4px, 4px) rotate(-3deg); }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ゆっくりとした呼吸（CTAに「さあ歩こうか」と誘いかけるための揺らぎ） */
+@keyframes inviteBreathe {
+  0%, 100% { box-shadow: 0 4px 16px rgba(217,164,65,0.28); transform: translateY(0); }
+  50%      { box-shadow: 0 6px 22px rgba(217,164,65,0.44); transform: translateY(-1px); }
+}
+
+/* やわらかな入場 */
+@keyframes softEnter {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== Fonts ===== */

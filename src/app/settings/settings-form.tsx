@@ -19,6 +19,7 @@ export function SettingsForm() {
   const [linkSent, setLinkSent] = useState(false);
   const [linkError, setLinkError] = useState("");
   const [rankData, setRankData] = useState<ReturnType<typeof getRank> | null>(null);
+  const [distance, setDistance] = useState<"short" | "medium" | "long">("medium");
 
   useEffect(() => {
     async function load() {
@@ -41,9 +42,21 @@ export function SettingsForm() {
         setOriginalName(data.display_name);
         setRankData(getRank(data.rank_points));
       }
+
+      try {
+        const saved = localStorage.getItem("oq_distance_preference");
+        if (saved === "short" || saved === "medium" || saved === "long") setDistance(saved);
+      } catch {}
     }
     load();
   }, [supabase]);
+
+  function changeDistance(value: "short" | "medium" | "long") {
+    setDistance(value);
+    try {
+      localStorage.setItem("oq_distance_preference", value);
+    } catch {}
+  }
 
   async function handleSaveName() {
     if (!displayName.trim() || displayName === originalName) return;
@@ -107,9 +120,13 @@ export function SettingsForm() {
 
   return (
     <div className="px-4 pt-8 pb-4">
-      <h1 className="font-wafuu text-xl font-bold text-gold">設定</h1>
+      <p className="text-[10px] tracking-[0.2em]" style={{ color: "var(--accent-gold-dark)" }}>MY SETTINGS</p>
+      <h1 className="font-wafuu mt-1 text-2xl font-bold" style={{ color: "var(--text-primary)" }}>わたし</h1>
+      <p className="mt-1 text-xs" style={{ color: "var(--text-secondary)" }}>
+        冒険者のプロフィールと設定
+      </p>
 
-      <div className="mt-8 space-y-4">
+      <div className="mt-6 space-y-4">
         {/* 冒険者ランク */}
         {rankData && (
           <div className="card-glass p-4">
@@ -149,16 +166,16 @@ export function SettingsForm() {
               maxLength={20}
               className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-sm outline-none transition"
               style={{
-                background: "rgba(0,0,0,0.3)",
-                color: "var(--color-text)",
-                border: "1px solid var(--color-border)",
+                background: "rgba(255,253,247,0.9)",
+                color: "var(--text-primary)",
+                border: "1px solid rgba(217,164,65,0.28)",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "var(--color-gold)";
-                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(232,184,73,0.3)";
+                e.currentTarget.style.borderColor = "var(--accent-gold)";
+                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(217,164,65,0.25)";
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = "var(--color-border)";
+                e.currentTarget.style.borderColor = "rgba(217,164,65,0.28)";
                 e.currentTarget.style.boxShadow = "none";
               }}
             />
@@ -173,6 +190,41 @@ export function SettingsForm() {
           <p className="mt-1.5 text-right text-[11px] text-gold">
             {displayName.length}/20
           </p>
+        </div>
+
+        {/* 歩く距離のこのみ */}
+        <div className="card-glass p-4">
+          <h2 className="text-sm font-medium" style={{ color: "var(--color-text-sub)" }}>歩く距離のこのみ</h2>
+          <p className="mt-1 text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+            クエストで神無子が提案する目的地までの距離です
+          </p>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {([
+              { k: "short", emoji: "🌱", label: "ちょっと", sub: "〜150m" },
+              { k: "medium", emoji: "🌿", label: "ちょうど", sub: "〜350m" },
+              { k: "long", emoji: "🌳", label: "しっかり", sub: "〜700m" },
+            ] as const).map((opt) => {
+              const selected = distance === opt.k;
+              return (
+                <button
+                  key={opt.k}
+                  onClick={() => changeDistance(opt.k)}
+                  className="rounded-xl py-3 text-center transition active:scale-[0.97]"
+                  style={{
+                    background: selected ? "rgba(217,164,65,0.2)" : "rgba(255,253,247,0.7)",
+                    border: `1px solid ${selected ? "var(--accent-gold)" : "rgba(217,164,65,0.2)"}`,
+                    boxShadow: selected ? "0 2px 8px rgba(217,164,65,0.25)" : "none",
+                  }}
+                >
+                  <div className="text-xl">{opt.emoji}</div>
+                  <p className="mt-0.5 text-[11px] font-bold" style={{ color: selected ? "var(--accent-gold-dark)" : "var(--text-primary)" }}>
+                    {opt.label}
+                  </p>
+                  <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>{opt.sub}</p>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* 匿名ユーザー向け: アカウント連携 */}
@@ -216,9 +268,9 @@ export function SettingsForm() {
                     placeholder="メールアドレス"
                     className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-sm outline-none"
                     style={{
-                      background: "rgba(0,0,0,0.3)",
-                      color: "var(--color-text)",
-                      border: "1px solid var(--color-border)",
+                      background: "rgba(255,253,247,0.9)",
+                      color: "var(--text-primary)",
+                      border: "1px solid rgba(217,164,65,0.28)",
                     }}
                   />
                   <button

@@ -7,10 +7,10 @@ import { getDailyQuestConfig, getCategoryBonusLabel } from "@/lib/daily-quest";
 type Step = "permission" | "loading" | "error";
 const MAX_RETRIES = 2;
 const LOADING_MESSAGES = [
-  "位置を確認中...",
-  "シナコを呼んでいます...",
-  "クエストを組み立て中...",
-  "もう少し...",
+  "いまの空気を読んでいます…",
+  "神無子が、風に耳をすましています…",
+  "今日の小さな目的地をえらんでいます…",
+  "もう少しだけ…",
 ];
 
 function QuestStartContent() {
@@ -32,10 +32,15 @@ function QuestStartContent() {
   }, [step]);
 
   async function startQuest(pos: { lat: number; lng: number }, retry = 0) {
+    let distancePreference: "short" | "medium" | "long" | undefined;
+    try {
+      const saved = typeof window !== "undefined" ? window.localStorage.getItem("oq_distance_preference") : null;
+      if (saved === "short" || saved === "medium" || saved === "long") distancePreference = saved;
+    } catch {}
     try {
       const res = await fetch("/api/quest/start", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lat: pos.lat, lng: pos.lng, is_daily: isDaily }),
+        body: JSON.stringify({ lat: pos.lat, lng: pos.lng, is_daily: isDaily, distance_preference: distancePreference }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "失敗しました"); }
       const d = await res.json();
@@ -90,8 +95,8 @@ function QuestStartContent() {
               <path d="M24 40L22 28H26L24 40Z" fill="var(--color-text-sub)" opacity="0.5" />
             </svg>
           </div>
-          <h2 className="text-gold mt-6 text-xl font-bold">{isDaily ? "デイリークエスト開始" : "冒険の準備"}</h2>
-          <p className="mt-2 text-sm text-[var(--color-text-sub)]">シナコがあなたの居場所に合わせてクエストを出します</p>
+          <h2 className="text-gold mt-6 font-wafuu text-xl font-bold">{isDaily ? "今日のデイリーへ" : "一歩、ふみだしましょうか"}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-sub)]">神無子があなたの居場所に合わせて、<br />今日のちいさな目的地をえらびます。</p>
           <button onClick={requestLocation} className="btn-primary mt-8 w-full max-w-xs">位置情報を許可する</button>
           <button onClick={() => router.push("/")} className="btn-ghost mt-3 text-sm">ホームに戻る</button>
         </div>
@@ -110,7 +115,7 @@ function QuestStartContent() {
 
       {step === "error" && (
         <div className="w-full max-w-xs text-center">
-          <p className="text-4xl">😥</p>
+          <p className="text-4xl">🌬️</p>
           <p className="mt-4 text-sm text-[var(--color-danger)]">{error}</p>
           <div className="mt-6 space-y-2">
             {canRetry && retryPos && <button onClick={() => { setStep("loading"); setCanRetry(false); startQuest(retryPos); }} className="btn-primary w-full">もう一度試す</button>}

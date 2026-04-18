@@ -18,7 +18,7 @@ export function AreaMap({ areas }: { areas: AreaStat[] }) {
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: "mapbox://styles/mapbox/light-v11",
       center: [areas[0].lng, areas[0].lat],
       zoom: 12,
       attributionControl: false,
@@ -38,9 +38,9 @@ export function AreaMap({ areas }: { areas: AreaStat[] }) {
         el.style.width = `${size}px`;
         el.style.height = `${size}px`;
         el.style.borderRadius = "50%";
-        el.style.background = "var(--color-gold)";
-        el.style.border = "2px solid white";
-        el.style.boxShadow = "0 0 12px rgba(232,184,73,0.5)";
+        el.style.background = "var(--accent-gold)";
+        el.style.border = "2px solid #FFFDF7";
+        el.style.boxShadow = "0 0 12px rgba(217,164,65,0.45)";
         el.style.cursor = "pointer";
         el.style.animation = "pulseRing 3s ease-in-out infinite";
 
@@ -76,10 +76,10 @@ export function AreaMap({ areas }: { areas: AreaStat[] }) {
     return (
       <div className="mt-16 text-center">
         <p className="text-4xl">🗺️</p>
-        <p className="mt-3 text-sm" style={{ color: "var(--color-text-sub)" }}>
-          まだ冒険の記録がありません。<br />クエストに出かけて地図を埋めよう！
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-sub)" }}>
+          地図はまだ白紙。<br />歩いた場所から、少しずつ色がついていきます。
         </p>
-        <Link href="/quest/start" className="btn-primary mt-4 inline-block">クエストを始める</Link>
+        <Link href="/quest/start" className="btn-primary mt-4 inline-block">歩きはじめる</Link>
       </div>
     );
   }
@@ -87,16 +87,16 @@ export function AreaMap({ areas }: { areas: AreaStat[] }) {
   return (
     <div className="mt-4">
       {/* マップ */}
-      <div className="relative overflow-hidden rounded-2xl" style={{ border: "1px solid rgba(232,184,73,0.3)", boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 0 20px rgba(232,184,73,0.05)" }}>
-        <div className="h-px bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent opacity-50" />
-        <div ref={containerRef} className="h-[400px] w-full" style={{ background: "#16213e" }} />
-        <div className="h-px bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent opacity-30" />
+      <div className="relative overflow-hidden rounded-2xl" style={{ border: "1px solid rgba(217,164,65,0.28)", boxShadow: "0 4px 20px rgba(42,37,32,0.08)" }}>
+        <div className="h-px bg-gradient-to-r from-transparent via-[var(--accent-gold)] to-transparent opacity-60" />
+        <div ref={containerRef} className="h-[400px] w-full" style={{ background: "#EDE4D3" }} />
+        <div className="h-px bg-gradient-to-r from-transparent via-[var(--accent-gold)] to-transparent opacity-40" />
 
         {/* 四隅の光ドット */}
-        <div className="pointer-events-none absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
-        <div className="pointer-events-none absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
-        <div className="pointer-events-none absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
-        <div className="pointer-events-none absolute bottom-2 right-2 h-1.5 w-1.5 rounded-full bg-[var(--color-gold)] opacity-40 shadow-[0_0_6px_var(--color-gold)]" />
+        <div className="pointer-events-none absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--accent-gold)] opacity-50 shadow-[0_0_6px_rgba(217,164,65,0.5)]" />
+        <div className="pointer-events-none absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--accent-gold)] opacity-50 shadow-[0_0_6px_rgba(217,164,65,0.5)]" />
+        <div className="pointer-events-none absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-[var(--accent-gold)] opacity-50 shadow-[0_0_6px_rgba(217,164,65,0.5)]" />
+        <div className="pointer-events-none absolute bottom-2 right-2 h-1.5 w-1.5 rounded-full bg-[var(--accent-gold)] opacity-50 shadow-[0_0_6px_rgba(217,164,65,0.5)]" />
 
         {/* エリアポップアップ */}
         {selectedArea && (

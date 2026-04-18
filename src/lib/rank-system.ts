@@ -1,12 +1,14 @@
+// 序盤（特にランク 2, 3）を早めに到達できるように再調整。
+// quest_clear=2pts を基本とすると、Rank 2 は 2クエスト、Rank 3 は 6クエストで到達。
 export const RANKS = [
-  { rank: 1, name: "見習い冒険者", pointsRequired: 0, icon: "🌱", color: "#8B8B8B" },
-  { rank: 2, name: "駆け出し冒険者", pointsRequired: 10, icon: "🍃", color: "#6B8E7B" },
-  { rank: 3, name: "一人前の冒険者", pointsRequired: 30, icon: "⚔️", color: "#4ecdc4" },
-  { rank: 4, name: "熟練冒険者", pointsRequired: 60, icon: "🛡️", color: "#f4a261" },
-  { rank: 5, name: "凄腕冒険者", pointsRequired: 100, icon: "🔥", color: "#e76f51" },
-  { rank: 6, name: "伝説の冒険者", pointsRequired: 160, icon: "👑", color: "#e8b849" },
-  { rank: 7, name: "神話の冒険者", pointsRequired: 250, icon: "🌟", color: "#f4d03f" },
-  { rank: 8, name: "世界を歩いた者", pointsRequired: 400, icon: "✨", color: "#FFFFFF" },
+  { rank: 1, name: "見習い冒険者", pointsRequired: 0, icon: "🌱", color: "#8F8578" },
+  { rank: 2, name: "駆け出し冒険者", pointsRequired: 4, icon: "🍃", color: "#8FA86B" },
+  { rank: 3, name: "一人前の冒険者", pointsRequired: 12, icon: "⚔️", color: "#6BA7B5" },
+  { rank: 4, name: "熟練冒険者", pointsRequired: 30, icon: "🛡️", color: "#4F8894" },
+  { rank: 5, name: "凄腕冒険者", pointsRequired: 60, icon: "🔥", color: "#C65E4A" },
+  { rank: 6, name: "伝説の冒険者", pointsRequired: 110, icon: "👑", color: "#D9A441" },
+  { rank: 7, name: "神話の冒険者", pointsRequired: 200, icon: "🌟", color: "#B88730" },
+  { rank: 8, name: "世界を歩いた者", pointsRequired: 350, icon: "✨", color: "#2A2520" },
 ] as const;
 
 type RankEntry = (typeof RANKS)[number];

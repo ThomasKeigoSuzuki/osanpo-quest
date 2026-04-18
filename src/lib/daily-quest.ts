@@ -1,27 +1,31 @@
 export type DailyQuestConfig = {
   name: string;
+  /**
+   * ミッションタイプの傾向（必ずしも固定しない）。
+   * distRange は削除し、距離はユーザーの distance_preference に従う方針。
+   */
   type: "discovery" | "direction" | "experience" | "random";
-  distRange: [number, number];
   categoryBonus: string | null;
   rarityBonus: number;
   minRarity?: number;
 };
 
+// 曜日ごとの「テーマ」のみ設定し、距離はユーザーのこのみに従う
 const DAILY_CONFIGS: DailyQuestConfig[] = [
   // 日曜=0
-  { name: "のんびり日曜日", type: "experience", distRange: [100, 300], categoryBonus: "divine", rarityBonus: 0 },
+  { name: "のんびり日曜日", type: "experience", categoryBonus: "divine", rarityBonus: 0 },
   // 月曜=1
-  { name: "発見の月曜日", type: "discovery", distRange: [200, 400], categoryBonus: "craft", rarityBonus: 0 },
+  { name: "発見の月曜日", type: "discovery", categoryBonus: "craft", rarityBonus: 0 },
   // 火曜=2
-  { name: "冒険の火曜日", type: "direction", distRange: [400, 600], categoryBonus: "mystery", rarityBonus: 0 },
+  { name: "冒険の火曜日", type: "direction", categoryBonus: "mystery", rarityBonus: 0 },
   // 水曜=3
-  { name: "感覚の水曜日", type: "experience", distRange: [200, 400], categoryBonus: "nature", rarityBonus: 0 },
+  { name: "感覚の水曜日", type: "experience", categoryBonus: "nature", rarityBonus: 0 },
   // 木曜=4
-  { name: "探索の木曜日", type: "discovery", distRange: [300, 500], categoryBonus: "memory", rarityBonus: 0 },
+  { name: "探索の木曜日", type: "discovery", categoryBonus: "memory", rarityBonus: 0 },
   // 金曜=5
-  { name: "ごほうびの金曜日", type: "random", distRange: [200, 400], categoryBonus: "food", rarityBonus: 2 },
+  { name: "ごほうびの金曜日", type: "random", categoryBonus: "food", rarityBonus: 1 },
   // 土曜=6
-  { name: "大冒険の土曜日", type: "direction", distRange: [600, 1000], categoryBonus: null, rarityBonus: 1, minRarity: 3 },
+  { name: "大冒険の土曜日", type: "random", categoryBonus: null, rarityBonus: 1, minRarity: 2 },
 ];
 
 export function getDailyQuestConfig(date: Date = new Date()): DailyQuestConfig {
